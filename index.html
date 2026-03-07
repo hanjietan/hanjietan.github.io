@@ -72,9 +72,16 @@
         }
         .pub-title {
             font-weight: bold;
-            color: #2c3e50;
             font-size: 1.1em;
             margin-bottom: 5px;
+        }
+        /* 专门为论文标题超链接设置的样式 */
+        .pub-title a {
+            color: #0056b3;
+            text-decoration: none;
+        }
+        .pub-title a:hover {
+            text-decoration: underline;
         }
         .pub-details {
             color: #555555;
@@ -100,14 +107,16 @@
 
         <section id="about">
             <h2>About Me</h2>
-            <p>I am an astronomy researcher specializing in Small Solar System Bodies (Asteroids, Comets, and Meteors). Beyond the observatory, I am a molecular anthropology enthusiast (Haplogroups: Y: O1b1a1b-MF188438, mt: B4b1a2) and a HAM radio operator (Call sign: BA7MJD).</p>
+            <p>I am an astronomy researcher interested in asteroids, comets, and meteors. Beyond astronomy, I am a genetic genealogy enthusiast (Haplogroups: Y: O1b1a1b-MF188438, mt: B4b1a2) and an amateur radio operator (Call sign: BA7MJD).</p>
         </section>
 
         <section id="publications">
             <h2>Publications</h2>
             
             <div class="publication">
-                <div class="pub-title">Perihelion Asymmetry in the Water Production Rate of the Interstellar Object 3I/ATLAS</div>
+                <div class="pub-title">
+                    <a href="https://iopscience.iop.org/article/10.3847/2041-8213/ae3c97" target="_blank">Perihelion Asymmetry in the Water Production Rate of the Interstellar Object 3I/ATLAS</a>
+                </div>
                 <div class="pub-details">H Tan, X Yan, JY Li - <i>The Astrophysical Journal Letters</i>, 2026</div>
             </div>
             
