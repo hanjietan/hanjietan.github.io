@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LCO 1m Network Weather Dashboard</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 30px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: #38bdf8;
+            margin: 0 0 10px 0;
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            color: #94a3b8;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .widget-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            box-sizing: border-box;
+            border-top: 4px solid #38bdf8;
+        }
+
+        .card-header {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .site-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .site-coords {
+            font-size: 13px;
+            color: #64748b;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .telescope-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        /* 望远镜标签全新样式：突出相机编号 */
+        .mpc-badge {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            color: #64748b;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .mpc-badge .cam-id {
+            color: #0284c7;
+            font-weight: 800;
+            margin-right: 6px;
+        }
+
+        .iframe-container {
+            width: 100%;
+            height: 700px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .iframe-container iframe {
+            width: 100% !important;
+            height: 100% !important;
+            border: none;
+        }
+
+        .iframe-container + div {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Global 1m Telescope Network (LCO)</h1>
+        <p>Sorted by Longitude (East to West) | 5-Day Meteogram Forecast (m/s)</p>
+    </header>
+
+    <div class="dashboard">
+        
+        <div class="widget-card">
+            <div class="card-header">
+                <div class="site-title">
+                    <span>📡 COJ: Siding Spring Observatory - NSW, Australia</span>
+                    <span class="site-coords">31.27°S 149.06°E</span>
+                </div>
+                <div class="telescope-info">
+                    <span class="mpc-badge"><span class="cam-id">fa12</span> (MPC: Q63)</span>
+                    <span class="mpc-badge"><span class="cam-id">fa19</span> (MPC: Q64)</span>
+                </div>
+            </div>
+            <div class="iframe-container">
+                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/31.27%C2%B0S+149.06%C2%B0E_-31.273N149.064E1130_Australia%2FSydney?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=255542300441ab6a&sig=426bcbcda7ccee817794ff08f454384f9911a00eb0fccf50a591b94ac3e3e7e8" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe><div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
+            </div>
+        </div>
+
+        <div class="widget-card">
+            <div class="card-header">
+                <div class="site-title">
+                    <span>📡 CPT: Sutherland, South Africa (SAAO)</span>
+                    <span class="site-coords">32.38°S 20.81°E</span>
+                </div>
+                <div class="telescope-info">
+                    <span class="mpc-badge"><span class="cam-id">fa14</span> (MPC: K91)</span>
+                    <span class="mpc-badge"><span class="cam-id">fa01</span> (MPC: K92)</span>
+                    <span class="mpc-badge"><span class="cam-id">fa06</span> (MPC: K93)</span>
+                </div>
+            </div>
+            <div class="iframe-container">
+                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/32.38%C2%B0S+20.81%C2%B0E_-32.378N20.811E1760_Africa%2FJohannesburg?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=1d66beae80ed3015&sig=82a994d8c69050d7ff6806df985d7c185216c5bd945710ca0fe9e2502d29186b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe><div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
+            </div>
+        </div>
+
+        <div class="widget-card">
+            <div class="card-header">
+                <div class="site-title">
+                    <span>📡 TFN: Teide Observatory - Tenerife, Spain</span>
+                    <span class="site-coords">28.30°N 16.51°W</span>
+                </div>
+                <div class="telescope-info">
+                    <span class="mpc-badge"><span class="cam-id">fa05</span> (MPC: Z31)</span>
+                    <span class="mpc-badge"><span class="cam-id">fa20</span> (MPC: Z24)</span>
+                </div>
+            </div>
+            <div class="iframe-container">
+                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/28.3%C2%B0N+16.51%C2%B0W_28.3N-16.51E2368_Atlantic%2FCanary?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=cbdd7d34479ba702&sig=fa50a85a6a59c9c692b8cf95c44d84e8cff2f8da62767c1b95b1f52d567d383b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe><div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
+            </div>
+        </div>
+
+        <div class="widget-card">
+            <div class="card-header">
+                <div class="site-title">
+                    <span>📡 LSC: Region IV, Chile (CTIO)</span>
+                    <span class="site-coords">30.17°S 70.81°W</span>
+                </div>
+                <div class="telescope-info">
+                    <span class="mpc-badge"><span class="cam-id">fa15</span> (MPC: W85)</span>
+                    <span class="mpc-badge"><span class="cam-id">fa04</span> (MPC: W86)</span>
+                    <span class="mpc-badge"><span class="cam-id">fa03</span> (MPC: W87)</span>
+                </div>
+            </div>
+            <div class="iframe-container">
+                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.17%C2%B0S+70.81%C2%B0W_-30.17N-70.807E2176_America%2FSantiago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=6c412a78f7c4421a&sig=82e91497b06d3dbbb94fa4f271ef078cc031a92a56dc04c1d962f535bb394cb9" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe><div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
+            </div>
+        </div>
+
+        <div class="widget-card">
+            <div class="card-header">
+                <div class="site-title">
+                    <span>📡 ELP: McDonald Observatory - Texas, USA</span>
+                    <span class="site-coords">30.67°N 104.02°W</span>
+                </div>
+                <div class="telescope-info">
+                    <span class="mpc-badge"><span class="cam-id">fa16</span> (MPC: V37)</span>
+                    <span class="mpc-badge"><span class="cam-id">fa11</span> (MPC: V39)</span>
+                </div>
+            </div>
+            <div class="iframe-container">
+                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.67%C2%B0N+104.02%C2%B0W_30.671N-104.022E2069_America%2FChicago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=a411caa4b576bb8a&sig=14e266f521acead676695701f73464b405c72909a2cded68e4e36dedefb27318" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe><div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
