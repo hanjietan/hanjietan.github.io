@@ -3,107 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honkit Tan - Academic Homepage</title>
+    <title>Hanjie Tan - Academic Homepage</title>
     <style>
-        /* 星空暗色系主题 CSS */
         body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333333;
+            line-height: 1.6;
             margin: 0;
             padding: 0;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            /* 深邃的星空渐变背景 */
-            background: linear-gradient(135deg, #0b0c10 0%, #1f2833 100%);
-            color: #c5c6c7;
-            line-height: 1.6;
-            min-height: 100vh;
         }
         .container {
             max-width: 800px;
-            margin: 0 auto;
-            padding: 60px 20px;
+            margin: 50px auto;
+            background: #ffffff;
+            padding: 50px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
         header {
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
         }
         .profile-pic {
             width: 160px;
             height: 160px;
             border-radius: 50%;
             object-fit: cover;
-            /* 酷炫的发光边框 */
-            border: 3px solid #66fcf1;
-            box-shadow: 0 0 25px rgba(102, 252, 241, 0.4);
+            border: 3px solid #e9ecef;
             margin-bottom: 20px;
-            transition: transform 0.3s ease;
-        }
-        .profile-pic:hover {
-            transform: scale(1.05);
         }
         h1 {
-            color: #ffffff;
             margin: 0;
-            font-size: 2.5em;
-            letter-spacing: 2px;
+            color: #2c3e50;
+            font-size: 2.2em;
+        }
+        .chinese-name {
+            font-size: 0.8em;
+            color: #666666;
+            font-weight: normal;
+        }
+        .links {
+            margin-top: 15px;
+            font-size: 1.05em;
+        }
+        .links a {
+            margin: 0 10px;
+            color: #0056b3;
+            text-decoration: none;
+        }
+        .links a:hover {
+            text-decoration: underline;
         }
         h2 {
-            color: #66fcf1;
-            border-bottom: 1px solid rgba(102, 252, 241, 0.3);
+            color: #2c3e50;
+            border-bottom: 2px solid #f0f0f0;
             padding-bottom: 10px;
             margin-top: 40px;
-            font-weight: 400;
+            font-size: 1.5em;
         }
-        .subtitle {
-            font-size: 1.2em;
-            color: #45a29e;
-            margin-top: 5px;
+        p {
+            color: #555555;
         }
-        /* 发表文章的卡片样式 */
         .publication {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid #45a29e;
-            transition: background 0.3s ease;
-        }
-        .publication:hover {
-            background: rgba(255, 255, 255, 0.08);
+            margin-bottom: 25px;
+            padding-left: 15px;
+            border-left: 3px solid #0056b3;
         }
         .pub-title {
             font-weight: bold;
-            color: #ffffff;
+            color: #2c3e50;
             font-size: 1.1em;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
         .pub-authors {
-            color: #c5c6c7;
+            color: #555555;
             font-size: 0.95em;
         }
         .pub-journal {
             font-style: italic;
-            color: #45a29e;
-            margin-top: 5px;
-        }
-        a {
-            color: #66fcf1;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
+            color: #0056b3;
+            margin-top: 3px;
+            font-size: 0.95em;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <img src="avatar.jpg" alt="Honkit Tan" class="profile-pic">
-            <h1>Honkit Tan</h1>
-            <p class="subtitle">Astronomy Researcher | 天文研究者</p>
+            <img src="avatar.jpg" alt="Hanjie Tan" class="profile-pic">
+            <h1>Hanjie Tan <span class="chinese-name">(谭瀚杰)</span></h1>
+            <div class="links">
+                <a href="mailto:h.tan1996@hotmail.com">Email</a> | 
+                <a href="https://scholar.google.com/citations?user=eFIMjAcAAAAJ&hl=en&oi=ao" target="_blank">Google Scholar</a> | 
+                <a href="https://orcid.org/my-orcid?orcid=0000-0002-6144-3062" target="_blank">ORCID</a>
+            </div>
         </header>
 
         <section id="about">
             <h2>About Me</h2>
-            <p>Hello! I am an astronomy researcher focusing on... (可以在这里简单写两句你的研究方向，比如星际天体、彗星等). Welcome to my academic homepage.</p>
+            <p>I am an astronomy researcher interested in asteroids, comets, and meteors.</p>
         </section>
 
         <section id="publications">
@@ -115,11 +114,6 @@
                 <div class="pub-journal">The Astrophysical Journal Letters 998 (1), L22</div>
             </div>
             
-            </section>
-
-        <section id="contact">
-            <h2>Contact</h2>
-            <p>Email: <a href="mailto:your_email@example.com">your_email@example.com</a></p>
         </section>
     </div>
 </body>
