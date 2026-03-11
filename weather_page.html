@@ -66,6 +66,39 @@
             align-items: center;
             margin-bottom: 10px;
         }
+        
+        /* 标题左侧容器，确保名字和 Live 徽章对齐 */
+        .site-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 全新直播 Live 标签样式 */
+        .live-badge {
+            background-color: #ef4444; /* 红色 */
+            color: #ffffff;
+            text-decoration: none;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: live-pulse 2s infinite; /* 呼吸脉冲动画 */
+            transition: background-color 0.2s;
+        }
+
+        .live-badge:hover {
+            background-color: #dc2626; /* 鼠标悬停时颜色变深 */
+        }
+
+        /* 呼吸脉冲动画效果 */
+        @keyframes live-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
 
         .site-coords {
             font-size: 13px;
@@ -133,7 +166,10 @@
         <div class="widget-card">
             <div class="card-header">
                 <div class="site-title">
-                    <span>📡 COJ: Siding Spring Observatory - NSW, Australia</span>
+                    <div class="site-name-wrapper">
+                        <span>📡 COJ: Siding Spring Observatory - NSW, Australia</span>
+                        <a href="https://lco.global/camera/coj/" target="_blank" class="live-badge">Live</a>
+                    </div>
                     <span class="site-coords">31.27°S 149.06°E</span>
                 </div>
                 <div class="telescope-info">
@@ -149,7 +185,10 @@
         <div class="widget-card">
             <div class="card-header">
                 <div class="site-title">
-                    <span>📡 CPT: Sutherland, South Africa (SAAO)</span>
+                    <div class="site-name-wrapper">
+                        <span>📡 CPT: Sutherland, South Africa (SAAO)</span>
+                        <a href="https://lco.global/camera/cpt/" target="_blank" class="live-badge">Live</a>
+                    </div>
                     <span class="site-coords">32.38°S 20.81°E</span>
                 </div>
                 <div class="telescope-info">
@@ -166,7 +205,10 @@
         <div class="widget-card">
             <div class="card-header">
                 <div class="site-title">
-                    <span>📡 TFN: Teide Observatory - Tenerife, Spain</span>
+                    <div class="site-name-wrapper">
+                        <span>📡 TFN: Teide Observatory - Tenerife, Spain</span>
+                        <a href="https://lco.global/camera/tfn/" target="_blank" class="live-badge">Live</a>
+                    </div>
                     <span class="site-coords">28.30°N 16.51°W</span>
                 </div>
                 <div class="telescope-info">
@@ -182,7 +224,10 @@
         <div class="widget-card">
             <div class="card-header">
                 <div class="site-title">
-                    <span>📡 LSC: Region IV, Chile (CTIO)</span>
+                    <div class="site-name-wrapper">
+                        <span>📡 LSC: Region IV, Chile (CTIO)</span>
+                        <a href="https://lco.global/camera/lsc/" target="_blank" class="live-badge">Live</a>
+                    </div>
                     <span class="site-coords">30.17°S 70.81°W</span>
                 </div>
                 <div class="telescope-info">
@@ -199,7 +244,10 @@
         <div class="widget-card">
             <div class="card-header">
                 <div class="site-title">
-                    <span>📡 ELP: McDonald Observatory - Texas, USA</span>
+                    <div class="site-name-wrapper">
+                        <span>📡 ELP: McDonald Observatory - Texas, USA</span>
+                        <a href="https://lco.global/camera/elp/" target="_blank" class="live-badge">Live</a>
+                    </div>
                     <span class="site-coords">30.67°N 104.02°W</span>
                 </div>
                 <div class="telescope-info">
