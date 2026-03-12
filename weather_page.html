@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LCO 1m Network Weather Dashboard</title>
+    <title>LCO Global Telescope Network Dashboard</title>
     <style>
         body {
             background-color: #0f172a;
             color: #e2e8f0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 30px 15px;
+            padding: 40px 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -18,28 +18,60 @@
 
         header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 50px;
         }
 
         header h1 {
             color: #38bdf8;
             margin: 0 0 10px 0;
-            font-size: 26px;
+            font-size: 32px;
             letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
         header p {
             color: #94a3b8;
             margin: 0;
+            font-size: 16px;
+        }
+
+        /* 鲜明的分割样式 */
+        .network-section {
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 70px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            color: #f8fafc;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .section-header .badge-count {
+            background: #38bdf8;
+            color: #0f172a;
+            padding: 4px 10px;
+            border-radius: 20px;
             font-size: 14px;
+            font-weight: bold;
+            margin-left: 15px;
         }
 
         .dashboard {
             display: flex;
             flex-direction: column;
             gap: 40px;
-            width: 100%;
-            max-width: 900px;
         }
 
         .widget-card {
@@ -48,8 +80,14 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             padding: 20px;
             box-sizing: border-box;
-            border-top: 4px solid #38bdf8;
+            border-top: 5px solid #38bdf8;
         }
+
+        /* 针对不同尺寸望远镜改变顶条颜色以作区分 */
+        .net-1m .widget-card { border-top-color: #38bdf8; } /* 蓝色 */
+        .net-2m .widget-card { border-top-color: #a855f7; } /* 紫色 */
+        .net-0m4 .widget-card { border-top-color: #10b981; } /* 绿色 */
+        .net-nres .widget-card { border-top-color: #f59e0b; } /* 橙色 */
 
         .card-header {
             margin-bottom: 15px;
@@ -67,16 +105,15 @@
             margin-bottom: 10px;
         }
         
-        /* 标题左侧容器，确保名字和 Live 徽章对齐 */
         .site-name-wrapper {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        /* 全新直播 Live 标签样式 */
+        /* 直播 Live 标签样式 */
         .live-badge {
-            background-color: #ef4444; /* 红色 */
+            background-color: #ef4444;
             color: #ffffff;
             text-decoration: none;
             padding: 2px 8px;
@@ -85,15 +122,12 @@
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            animation: live-pulse 2s infinite; /* 呼吸脉冲动画 */
+            animation: live-pulse 2s infinite;
             transition: background-color 0.2s;
         }
 
-        .live-badge:hover {
-            background-color: #dc2626; /* 鼠标悬停时颜色变深 */
-        }
+        .live-badge:hover { background-color: #dc2626; }
 
-        /* 呼吸脉冲动画效果 */
         @keyframes live-pulse {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
@@ -114,16 +148,16 @@
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 5px;
+            margin-top: 8px;
         }
 
-        /* 望远镜标签全新样式：突出相机编号 */
+        /* 望远镜详细信息标签 */
         .mpc-badge {
             background-color: #f8fafc;
             border: 1px solid #cbd5e1;
-            color: #64748b;
+            color: #475569;
             padding: 4px 10px;
-            border-radius: 20px;
+            border-radius: 6px;
             font-size: 13px;
             font-weight: 500;
             display: flex;
@@ -134,13 +168,22 @@
             color: #0284c7;
             font-weight: 800;
             margin-right: 6px;
+            background: #e0f2fe;
+            padding: 2px 6px;
+            border-radius: 4px;
         }
+        
+        .net-2m .mpc-badge .cam-id { color: #9333ea; background: #f3e8ff; }
+        .net-0m4 .mpc-badge .cam-id { color: #059669; background: #d1fae5; }
+        .net-nres .mpc-badge .cam-id { color: #d97706; background: #fef3c7; }
 
         .iframe-container {
             width: 100%;
             height: 700px;
             overflow: hidden;
             position: relative;
+            background: #f1f5f9;
+            border-radius: 8px;
         }
 
         .iframe-container iframe {
@@ -152,114 +195,364 @@
         .iframe-container + div {
             display: none !important;
         }
+
+        /* 无天气数据时的占位符样式 */
+        .weather-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .weather-placeholder span {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .weather-placeholder h3 { margin: 0 0 10px 0; color: #334155; }
+        
+        /* NRES 独立介绍信息框 */
+        .nres-info-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+            color: #cbd5e1;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .nres-info-box strong { color: #fcd34d; }
+
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Global 1m Telescope Network (LCO)</h1>
-        <p>Sorted by Longitude (East to West) | 5-Day Meteogram Forecast (m/s)</p>
+        <h1>Global Telescope Network (LCO)</h1>
+        <p>Sorted by Longitude (East to West)</p>
     </header>
 
-    <div class="dashboard">
+    <div class="network-section net-1m">
+        <div class="section-header">
+            <h2>🔭 1.0-Meter Telescope Network</h2>
+            <span class="badge-count">5 Sites</span>
+        </div>
+        <div class="dashboard">
+            
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 COJ: Siding Spring Observatory - Australia</span>
+                            <a href="https://lco.global/camera/coj/" target="_blank" class="live-badge">Live</a>
+                        </div>
+                        <span class="site-coords">31.27°S 149.06°E</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">1m0a</span> LCO A (MPC: Q63)</span>
+                        <span class="mpc-badge"><span class="cam-id">1m0b</span> LCO B (MPC: Q64)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/31.27%C2%B0S+149.06%C2%B0E_-31.273N149.064E1130_Australia%2FSydney?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=255542300441ab6a&sig=426bcbcda7ccee817794ff08f454384f9911a00eb0fccf50a591b94ac3e3e7e8" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 CPT: Sutherland, South Africa (SAAO)</span>
+                            <a href="https://lco.global/camera/cpt/" target="_blank" class="live-badge">Live</a>
+                        </div>
+                        <span class="site-coords">32.38°S 20.81°E</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">1m0a</span> LCO A (MPC: K91)</span>
+                        <span class="mpc-badge"><span class="cam-id">1m0b</span> LCO B (MPC: K92)</span>
+                        <span class="mpc-badge"><span class="cam-id">1m0c</span> LCO C (MPC: K93)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/32.38%C2%B0S+20.81%C2%B0E_-32.378N20.811E1760_Africa%2FJohannesburg?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=1d66beae80ed3015&sig=82a994d8c69050d7ff6806df985d7c185216c5bd945710ca0fe9e2502d29186b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 TFN: Teide Observatory - Tenerife, Spain</span>
+                            <a href="https://lco.global/camera/tfn/" target="_blank" class="live-badge">Live</a>
+                        </div>
+                        <span class="site-coords">28.30°N 16.51°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">1m0a</span> LCO A (MPC: Z31)</span>
+                        <span class="mpc-badge"><span class="cam-id">1m0b</span> LCO B (MPC: Z24)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/28.3%C2%B0N+16.51%C2%B0W_28.3N-16.51E2368_Atlantic%2FCanary?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=cbdd7d34479ba702&sig=fa50a85a6a59c9c692b8cf95c44d84e8cff2f8da62767c1b95b1f52d567d383b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 LSC: Region IV, Chile (CTIO)</span>
+                            <a href="https://lco.global/camera/lsc/" target="_blank" class="live-badge">Live</a>
+                        </div>
+                        <span class="site-coords">30.17°S 70.81°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">1m0a</span> LCO A (MPC: W85)</span>
+                        <span class="mpc-badge"><span class="cam-id">1m0b</span> LCO B (MPC: W86)</span>
+                        <span class="mpc-badge"><span class="cam-id">1m0c</span> LCO C (MPC: W87)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.17%C2%B0S+70.81%C2%B0W_-30.17N-70.807E2176_America%2FSantiago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=6c412a78f7c4421a&sig=82e91497b06d3dbbb94fa4f271ef078cc031a92a56dc04c1d962f535bb394cb9" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 ELP: McDonald Observatory - Texas, USA</span>
+                            <a href="https://lco.global/camera/elp/" target="_blank" class="live-badge">Live</a>
+                        </div>
+                        <span class="site-coords">30.67°N 104.02°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">1m0a</span> LCO A (MPC: V37)</span>
+                        <span class="mpc-badge"><span class="cam-id">1m0b</span> LCO B (MPC: V39)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.67%C2%B0N+104.02%C2%B0W_30.671N-104.022E2069_America%2FChicago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=a411caa4b576bb8a&sig=14e266f521acead676695701f73464b405c72909a2cded68e4e36dedefb27318" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="network-section net-2m">
+        <div class="section-header">
+            <h2>🔭 2.0-Meter Telescope Network</h2>
+            <span class="badge-count">2 Sites</span>
+        </div>
+        <div class="dashboard">
+
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 OGG: Haleakala Observatory - Hawaii, USA</span>
+                        </div>
+                        <span class="site-coords">20.71°N 156.26°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">2m0a</span> Faulkes North (MPC: F65)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <div class="weather-placeholder">
+                        <span>⛅</span>
+                        <h3>Meteoblue Data Required</h3>
+                        <p>Please insert valid iframe code for Haleakala Observatory.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 COJ: Siding Spring Observatory - Australia</span>
+                        </div>
+                        <span class="site-coords">31.27°S 149.06°E</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">2m0a</span> Faulkes South (MPC: E10)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/31.27%C2%B0S+149.06%C2%B0E_-31.273N149.064E1130_Australia%2FSydney?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=255542300441ab6a&sig=426bcbcda7ccee817794ff08f454384f9911a00eb0fccf50a591b94ac3e3e7e8" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="network-section net-0m4">
+        <div class="section-header">
+            <h2>🔭 0.4-Meter Telescope Network</h2>
+            <span class="badge-count">6 Sites</span>
+        </div>
+        <div class="dashboard">
+
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 OGG: Haleakala Observatory - Hawaii, USA</span>
+                        </div>
+                        <span class="site-coords">20.71°N 156.26°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">0m4b</span> Clamshell #1 (MPC: T04)</span>
+                        <span class="mpc-badge"><span class="cam-id">0m4c</span> Clamshell #2 (MPC: T03)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <div class="weather-placeholder">
+                        <span>⛅</span>
+                        <h3>Meteoblue Data Required</h3>
+                        <p>Please insert valid iframe code for Haleakala Observatory.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 ELP: McDonald Observatory - Texas, USA</span>
+                        </div>
+                        <span class="site-coords">30.67°N 104.02°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">0m4a</span> Aqawan A #1 (MPC: V38)</span>
+                        <span class="mpc-badge"><span class="cam-id">0m4b</span> Aqawan B #1 (MPC: V45)</span>
+                        <span class="mpc-badge"><span class="cam-id">0m4c</span> Aqawan B #2 (MPC: V47)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.67%C2%B0N+104.02%C2%B0W_30.671N-104.022E2069_America%2FChicago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=a411caa4b576bb8a&sig=14e266f521acead676695701f73464b405c72909a2cded68e4e36dedefb27318" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 LSC: Region IV, Chile (CTIO)</span>
+                        </div>
+                        <span class="site-coords">30.17°S 70.81°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">0m4a</span> Aqawan A #1 (MPC: W89)</span>
+                        <span class="mpc-badge"><span class="cam-id">0m4b</span> Aqawan B #1 (MPC: W79)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.17%C2%B0S+70.81%C2%B0W_-30.17N-70.807E2176_America%2FSantiago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=6c412a78f7c4421a&sig=82e91497b06d3dbbb94fa4f271ef078cc031a92a56dc04c1d962f535bb394cb9" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 CPT: Sutherland, South Africa (SAAO)</span>
+                        </div>
+                        <span class="site-coords">32.38°S 20.81°E</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">0m4a</span> Aqawan A #1 (MPC: L09)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/32.38%C2%B0S+20.81%C2%B0E_-32.378N20.811E1760_Africa%2FJohannesburg?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=1d66beae80ed3015&sig=82a994d8c69050d7ff6806df985d7c185216c5bd945710ca0fe9e2502d29186b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 COJ: Siding Spring Observatory - Australia</span>
+                        </div>
+                        <span class="site-coords">31.27°S 149.06°E</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">0m4a</span> Clamshell #1 (MPC: Q58)</span>
+                        <span class="mpc-badge"><span class="cam-id">0m4b</span> Clamshell #2 (MPC: Q59)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/31.27%C2%B0S+149.06%C2%B0E_-31.273N149.064E1130_Australia%2FSydney?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=255542300441ab6a&sig=426bcbcda7ccee817794ff08f454384f9911a00eb0fccf50a591b94ac3e3e7e8" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 TFN: Teide Observatory - Tenerife, Spain</span>
+                        </div>
+                        <span class="site-coords">28.30°N 16.51°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">0m4a</span> Aqawan A #1 (MPC: Z21)</span>
+                        <span class="mpc-badge"><span class="cam-id">0m4b</span> Aqawan A #2 (MPC: Z17)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/28.3%C2%B0N+16.51%C2%B0W_28.3N-16.51E2368_Atlantic%2FCanary?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=cbdd7d34479ba702&sig=fa50a85a6a59c9c692b8cf95c44d84e8cff2f8da62767c1b95b1f52d567d383b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="network-section net-nres">
+        <div class="section-header">
+            <h2>🔭 NRES (1-Meter Spectrographs)</h2>
+            <span class="badge-count">1 Site</span>
+        </div>
         
-        <div class="widget-card">
-            <div class="card-header">
-                <div class="site-title">
-                    <div class="site-name-wrapper">
-                        <span>📡 COJ: Siding Spring Observatory - NSW, Australia</span>
-                        <a href="https://lco.global/camera/coj/" target="_blank" class="live-badge">Live</a>
-                    </div>
-                    <span class="site-coords">31.27°S 149.06°E</span>
-                </div>
-                <div class="telescope-info">
-                    <span class="mpc-badge"><span class="cam-id">fa12</span> (MPC: Q63)</span>
-                    <span class="mpc-badge"><span class="cam-id">fa19</span> (MPC: Q64)</span>
-                </div>
-            </div>
-            <div class="iframe-container">
-                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/31.27%C2%B0S+149.06%C2%B0E_-31.273N149.064E1130_Australia%2FSydney?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=255542300441ab6a&sig=426bcbcda7ccee817794ff08f454384f9911a00eb0fccf50a591b94ac3e3e7e8" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe><div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
-            </div>
+        <div class="nres-info-box">
+            <strong>Important Note:</strong> NRES will not be offered as of semester 2026B.<br><br>
+            LCO's Network of Robotic Echelle Spectrographs (NRES) consists of four identical high-resolution (R~53,000), precise (≤ 3 m/s design goal), optical (380-860 nm) echelle spectrographs, each fiber-fed (~2.9" per fiber width) by one of two 1 meter telescopes and a ThAr calibration source. The anticipated long-term accuracy for NRES is better than 3 m/s in less than an hour for stars brighter than V = 11. Like all instruments at LCO, scheduling, observing, and data reduction are autonomous, and all data will be publicly available after a proprietary period. NRES nodes are installed at our sites in Chile, Texas, Israel, and South Africa and are currently available for science observations.
         </div>
 
-        <div class="widget-card">
-            <div class="card-header">
-                <div class="site-title">
-                    <div class="site-name-wrapper">
-                        <span>📡 CPT: Sutherland, South Africa (SAAO)</span>
-                        <a href="https://lco.global/camera/cpt/" target="_blank" class="live-badge">Live</a>
+        <div class="dashboard">
+            <div class="widget-card">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 TLV: Wise Observatory - Mitzpeh Ramon, Israel</span>
+                        </div>
+                        <span class="site-coords">30.60°N 34.76°E</span>
                     </div>
-                    <span class="site-coords">32.38°S 20.81°E</span>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id">1m0a</span> Wise NRES (MPC: 097)</span>
+                    </div>
                 </div>
-                <div class="telescope-info">
-                    <span class="mpc-badge"><span class="cam-id">fa14</span> (MPC: K91)</span>
-                    <span class="mpc-badge"><span class="cam-id">fa01</span> (MPC: K92)</span>
-                    <span class="mpc-badge"><span class="cam-id">fa06</span> (MPC: K93)</span>
+                <div class="iframe-container">
+                    <div class="weather-placeholder">
+                        <span>⛅</span>
+                        <h3>Meteoblue Data Required</h3>
+                        <p>Please insert valid iframe code for Wise Observatory.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="iframe-container">
-                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/32.38%C2%B0S+20.81%C2%B0E_-32.378N20.811E1760_Africa%2FJohannesburg?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=1d66beae80ed3015&sig=82a994d8c69050d7ff6806df985d7c185216c5bd945710ca0fe9e2502d29186b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe><div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
             </div>
         </div>
-
-        <div class="widget-card">
-            <div class="card-header">
-                <div class="site-title">
-                    <div class="site-name-wrapper">
-                        <span>📡 TFN: Teide Observatory - Tenerife, Spain</span>
-                        <a href="https://lco.global/camera/tfn/" target="_blank" class="live-badge">Live</a>
-                    </div>
-                    <span class="site-coords">28.30°N 16.51°W</span>
-                </div>
-                <div class="telescope-info">
-                    <span class="mpc-badge"><span class="cam-id">fa05</span> (MPC: Z31)</span>
-                    <span class="mpc-badge"><span class="cam-id">fa20</span> (MPC: Z24)</span>
-                </div>
-            </div>
-            <div class="iframe-container">
-                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/28.3%C2%B0N+16.51%C2%B0W_28.3N-16.51E2368_Atlantic%2FCanary?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=cbdd7d34479ba702&sig=fa50a85a6a59c9c692b8cf95c44d84e8cff2f8da62767c1b95b1f52d567d383b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe><div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
-            </div>
-        </div>
-
-        <div class="widget-card">
-            <div class="card-header">
-                <div class="site-title">
-                    <div class="site-name-wrapper">
-                        <span>📡 LSC: Region IV, Chile (CTIO)</span>
-                        <a href="https://lco.global/camera/lsc/" target="_blank" class="live-badge">Live</a>
-                    </div>
-                    <span class="site-coords">30.17°S 70.81°W</span>
-                </div>
-                <div class="telescope-info">
-                    <span class="mpc-badge"><span class="cam-id">fa15</span> (MPC: W85)</span>
-                    <span class="mpc-badge"><span class="cam-id">fa04</span> (MPC: W86)</span>
-                    <span class="mpc-badge"><span class="cam-id">fa03</span> (MPC: W87)</span>
-                </div>
-            </div>
-            <div class="iframe-container">
-                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.17%C2%B0S+70.81%C2%B0W_-30.17N-70.807E2176_America%2FSantiago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=6c412a78f7c4421a&sig=82e91497b06d3dbbb94fa4f271ef078cc031a92a56dc04c1d962f535bb394cb9" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe><div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
-            </div>
-        </div>
-
-        <div class="widget-card">
-            <div class="card-header">
-                <div class="site-title">
-                    <div class="site-name-wrapper">
-                        <span>📡 ELP: McDonald Observatory - Texas, USA</span>
-                        <a href="https://lco.global/camera/elp/" target="_blank" class="live-badge">Live</a>
-                    </div>
-                    <span class="site-coords">30.67°N 104.02°W</span>
-                </div>
-                <div class="telescope-info">
-                    <span class="mpc-badge"><span class="cam-id">fa16</span> (MPC: V37)</span>
-                    <span class="mpc-badge"><span class="cam-id">fa11</span> (MPC: V39)</span>
-                </div>
-            </div>
-            <div class="iframe-container">
-                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.67%C2%B0N+104.02%C2%B0W_30.671N-104.022E2069_America%2FChicago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=a411caa4b576bb8a&sig=14e266f521acead676695701f73464b405c72909a2cded68e4e36dedefb27318" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe><div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
-            </div>
-        </div>
-
     </div>
 
 </body>
