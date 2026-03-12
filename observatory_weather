@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Observatories Weather Dashboard</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 40px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        header h1 {
+            color: #38bdf8;
+            margin: 0 0 10px 0;
+            font-size: 32px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        header p {
+            color: #94a3b8;
+            margin: 0;
+            font-size: 16px;
+        }
+
+        /* --- 内容区域 --- */
+        .main-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px; /* 卡片之间的间距 */
+        }
+
+        /* 卡片样式 */
+        .widget-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            box-sizing: border-box;
+            border-top: 4px solid #38bdf8; /* 统一的顶边框颜色 */
+        }
+
+        .card-header {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .site-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .site-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .site-coords {
+            font-size: 13px;
+            color: #64748b;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .telescope-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        /* MPC 编号徽章样式 */
+        .mpc-badge {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            color: #64748b;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .mpc-badge .mpc-label {
+            color: #0284c7; /* 蓝色加亮 */
+            font-weight: 800;
+            margin-right: 6px;
+        }
+
+        /* 修复 iframe 拉伸问题的容器 */
+        .iframe-container {
+            width: 100%;
+            height: 700px;
+            overflow: hidden;
+            position: relative;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        /* 强制覆盖 meteoblue 内部样式，防止被拉伸 */
+        .iframe-container iframe {
+            width: 100% !important;
+            height: 700px !important;
+            border: none;
+            display: block;
+        }
+
+        .iframe-container + div {
+            display: none !important;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Global Observatories Weather</h1>
+        <p>Current meteogram forecasts</p>
+    </header>
+
+    <div class="main-container">
+
+        <div class="widget-card">
+            <div class="card-header">
+                <div class="site-title">
+                    <div class="site-name-wrapper">
+                        <span>📡 Xingming Observatory - Xinjiang, China</span>
+                    </div>
+                    <span class="site-coords">43.47°N 87.18°E</span>
+                </div>
+                <div class="telescope-info">
+                    <span class="mpc-badge"><span class="mpc-label">MPC Code:</span> C42</span>
+                </div>
+            </div>
+            <div class="iframe-container">
+                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/gangou_china_1538440?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=b82964c19998ab67&sig=c1c9729cc3150eece900784132dad5377684432a7a97847f157fea201232a5d1" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+            </div>
+        </div>
+
+        <div class="widget-card">
+            <div class="card-header">
+                <div class="site-title">
+                    <div class="site-name-wrapper">
+                        <span>📡 Lulin Observatory - Nantou, Taiwan</span>
+                    </div>
+                    <span class="site-coords">23.47°N 120.87°E</span>
+                </div>
+                <div class="telescope-info">
+                    <span class="mpc-badge"><span class="mpc-label">MPC Code:</span> D35</span>
+                </div>
+            </div>
+            <div class="iframe-container">
+                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/lulin-qianshan_taiwan_6725044?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=281c8025fbc8fe96&sig=a312d8185199d7242e6a2b232f619104c815bfd80558841970a9f72bc5f5d5d5" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+            </div>
+        </div>
+
+        <div class="widget-card">
+            <div class="card-header">
+                <div class="site-title">
+                    <div class="site-name-wrapper">
+                        <span>📡 Mardella Observatory - Western Australia</span>
+                    </div>
+                    <span class="site-coords">32.31°S 115.96°E</span>
+                </div>
+                <div class="telescope-info">
+                    <span class="mpc-badge"><span class="mpc-label">MPC Code:</span> E29</span>
+                </div>
+            </div>
+            <div class="iframe-container">
+                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/-32.3N115.95E15_Australia%2FPerth?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=44b9bb44ff91d9be&sig=8d57cbef691dd5bacc4fd239fb2511d064337455d23c84fea471cfcf2c3811e0" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+            </div>
+        </div>
+
+        <div class="widget-card">
+            <div class="card-header">
+                <div class="site-title">
+                    <div class="site-name-wrapper">
+                        <span>📡 CAO - San Pedro de Atacama, Chile</span>
+                    </div>
+                    <span class="site-coords">22.95°S 68.18°W</span>
+                </div>
+                <div class="telescope-info">
+                    <span class="mpc-badge"><span class="mpc-label">MPC Code:</span> W96</span>
+                </div>
+            </div>
+            <div class="iframe-container">
+                <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/-22.953N-68.18E2398_America%2FSantiago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=f775666d75113f69&sig=73d13d218e94b4b4a232098b236285b12910cdb188b52a9bc7897345adb075ad" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
