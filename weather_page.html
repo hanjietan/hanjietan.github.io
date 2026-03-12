@@ -77,25 +77,26 @@
             margin-bottom: -2px;
         }
 
-        /* --- 跳动的 LIVE 动画样式 --- */
+        /* --- 跳动的 LIVE 动画样式 (作为独立链接) --- */
         .live-badge {
             display: inline-flex;
             align-items: center;
-            color: #ef4444; /* 红色字 */
+            color: #ef4444; 
             background: rgba(239, 68, 68, 0.1);
-            padding: 2px 6px;
+            padding: 3px 8px;
             border-radius: 4px;
             font-weight: 800;
             font-size: 11px;
-            margin-left: 10px;
             letter-spacing: 1px;
             border: 1px solid rgba(239, 68, 68, 0.3);
+            text-decoration: none;
+            transition: all 0.2s;
         }
 
-        .tab-btn.active .live-badge {
-            color: #b91c1c;
-            border-color: #b91c1c;
-            background: transparent;
+        .live-badge:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            transform: scale(1.05);
         }
 
         .live-dot {
@@ -105,10 +106,6 @@
             border-radius: 50%;
             margin-right: 5px;
             animation: pulse 1.5s infinite;
-        }
-
-        .tab-btn.active .live-dot {
-            background-color: #b91c1c;
         }
 
         @keyframes pulse {
@@ -163,7 +160,7 @@
         .site-name-wrapper {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .site-coords {
@@ -236,19 +233,15 @@
         <div class="tab-container">
             <button class="tab-btn active" onclick="switchTab(event, 'tab-1m')">
                 1.0-Meter
-                <div class="live-badge"><div class="live-dot"></div>LIVE</div>
             </button>
             <button class="tab-btn" onclick="switchTab(event, 'tab-2m')">
                 2.0-Meter
-                <div class="live-badge"><div class="live-dot"></div>LIVE</div>
             </button>
             <button class="tab-btn" onclick="switchTab(event, 'tab-0m4')">
                 0.4-Meter
-                <div class="live-badge"><div class="live-dot"></div>LIVE</div>
             </button>
             <button class="tab-btn" onclick="switchTab(event, 'tab-nres')">
                 NRES (Spectrographs)
-                <div class="live-badge"><div class="live-dot"></div>LIVE</div>
             </button>
         </div>
 
@@ -259,6 +252,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 COJ: Siding Spring Observatory - Australia</span>
+                            <a href="https://lco.global/camera/coj/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">31.27°S 149.06°E</span>
                     </div>
@@ -277,6 +271,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 CPT: Sutherland, South Africa (SAAO)</span>
+                            <a href="https://lco.global/camera/cpt/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">32.38°S 20.81°E</span>
                     </div>
@@ -296,6 +291,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 TFN: Teide Observatory - Tenerife, Spain</span>
+                            <a href="https://lco.global/camera/tfn/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">28.30°N 16.51°W</span>
                     </div>
@@ -314,6 +310,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 LSC: Region IV, Chile (CTIO)</span>
+                            <a href="https://lco.global/camera/lsc/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">30.17°S 70.81°W</span>
                     </div>
@@ -333,6 +330,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 ELP: McDonald Observatory - Texas, USA</span>
+                            <a href="https://lco.global/camera/elp/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">30.67°N 104.02°W</span>
                     </div>
@@ -354,6 +352,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 OGG: Haleakala Observatory - Hawaii, USA</span>
+                            <a href="https://lco.global/camera/ogg/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">20.71°N 156.26°W</span>
                     </div>
@@ -362,7 +361,7 @@
                     </div>
                 </div>
                 <div class="iframe-container">
-                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/20.71N-156.26E2944_Pacific%2FHonolulu?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=fcccfa5b95707384&sig=0c2d40742fe388491b6ab3649b5575c976b65aa9281f3b08172433e82e41a732" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/20.71N-156.26E2944_Pacific%2FHonolulu?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=dbea815fd4c4131a&sig=da08250c8661c017266b46a8fd915c51faf45b6912ced9d77705ccee0beae38c" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
                 </div>
             </div>
 
@@ -371,6 +370,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 COJ: Siding Spring Observatory - Australia</span>
+                            <a href="https://lco.global/camera/coj/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">31.27°S 149.06°E</span>
                     </div>
@@ -392,6 +392,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 OGG: Haleakala Observatory - Hawaii, USA</span>
+                            <a href="https://lco.global/camera/ogg/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">20.71°N 156.26°W</span>
                     </div>
@@ -401,7 +402,7 @@
                     </div>
                 </div>
                 <div class="iframe-container">
-                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/20.71N-156.26E2944_Pacific%2FHonolulu?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=fcccfa5b95707384&sig=0c2d40742fe388491b6ab3649b5575c976b65aa9281f3b08172433e82e41a732" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/20.71N-156.26E2944_Pacific%2FHonolulu?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=81a1a9c7c8f55b61&sig=cd1cb01975ec9a8569e45144da5cd883de3fc5ac59b8cfdc19c1b0910654ba6b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
                 </div>
             </div>
 
@@ -410,6 +411,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 ELP: McDonald Observatory - Texas, USA</span>
+                            <a href="https://lco.global/camera/elp/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">30.67°N 104.02°W</span>
                     </div>
@@ -429,6 +431,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 LSC: Region IV, Chile (CTIO)</span>
+                            <a href="https://lco.global/camera/lsc/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">30.17°S 70.81°W</span>
                     </div>
@@ -447,6 +450,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 CPT: Sutherland, South Africa (SAAO)</span>
+                            <a href="https://lco.global/camera/cpt/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">32.38°S 20.81°E</span>
                     </div>
@@ -464,6 +468,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 COJ: Siding Spring Observatory - Australia</span>
+                            <a href="https://lco.global/camera/coj/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">31.27°S 149.06°E</span>
                     </div>
@@ -482,6 +487,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 TFN: Teide Observatory - Tenerife, Spain</span>
+                            <a href="https://lco.global/camera/tfn/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">28.30°N 16.51°W</span>
                     </div>
@@ -504,6 +510,7 @@
                     <div class="site-title">
                         <div class="site-name-wrapper">
                             <span>📡 TLV: Wise Observatory - Mitzpeh Ramon, Israel</span>
+                            <a href="https://lco.global/camera/tlv/" target="_blank" class="live-badge"><div class="live-dot"></div>LIVE</a>
                         </div>
                         <span class="site-coords">30.60°N 34.76°E</span>
                     </div>
