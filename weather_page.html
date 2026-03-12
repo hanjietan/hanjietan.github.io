@@ -1,141 +1,543 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LCO Telescope Weather Dashboard</title>
+    <title>Global Telescope Network Dashboard</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 20px;
-            background-color: #f9f9f9;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 40px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        
-        /* 标签栏容器 */
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: #38bdf8;
+            margin: 0 0 10px 0;
+            font-size: 32px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        header p {
+            color: #94a3b8;
+            margin: 0;
+            font-size: 16px;
+        }
+
+        /* --- 标签栏容器 --- */
+        .main-container {
+            width: 100%;
+            max-width: 900px;
+        }
+
         .tab-container {
             display: flex;
-            border-bottom: 2px solid #e0e0e0;
-            margin-bottom: 20px;
+            border-bottom: 2px solid #334155;
+            margin-bottom: 30px;
             flex-wrap: wrap;
+            gap: 5px;
         }
-        
-        /* 标签按钮 (已去掉 🔭 图标) */
+
+        /* 标签按钮 */
         .tab-btn {
-            background: none;
+            background: rgba(30, 41, 59, 0.5);
             border: none;
-            padding: 12px 20px;
+            padding: 14px 24px;
             cursor: pointer;
             font-size: 16px;
-            color: #555;
+            color: #94a3b8;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            transition: all 0.3s;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
         }
-        
+
         .tab-btn:hover {
-            background-color: #f0f0f0;
+            background-color: #1e293b;
+            color: #e2e8f0;
         }
-        
+
         /* 激活状态的标签 */
         .tab-btn.active {
-            border-bottom: 2px solid #007bff;
-            color: #007bff;
-            font-weight: bold;
-            margin-bottom: -2px; /* 覆盖底边框 */
+            background-color: #38bdf8;
+            color: #0f172a;
+            border-bottom: 2px solid #38bdf8;
+            margin-bottom: -2px;
         }
 
         /* --- 跳动的 LIVE 动画样式 --- */
         .live-badge {
             display: inline-flex;
             align-items: center;
-            color: #ff3b30;
-            font-weight: bold;
-            font-size: 12px;
+            color: #ef4444; /* 红色字 */
+            background: rgba(239, 68, 68, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 800;
+            font-size: 11px;
             margin-left: 10px;
-            letter-spacing: 0.5px;
-        }
-        
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #ff3b30;
-            border-radius: 50%;
-            margin-right: 5px;
-            /* 关键帧动画：1.5秒无限循环 */
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
-            70% { box-shadow: 0 0 0 6px rgba(255, 59, 48, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+            letter-spacing: 1px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
-        /* 内容区域 */
+        .tab-btn.active .live-badge {
+            color: #b91c1c;
+            border-color: #b91c1c;
+            background: transparent;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pulse 1.5s infinite;
+        }
+
+        .tab-btn.active .live-dot {
+            background-color: #b91c1c;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* --- 内容区域 --- */
         .tab-content {
             display: none;
-            background: white;
+            flex-direction: column;
+            gap: 40px;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 卡片样式 */
+        .widget-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+            border-top: 4px solid #38bdf8;
+        }
+
+        .card-header {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .site-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
         
-        .tab-content.active {
+        .site-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .site-coords {
+            font-size: 13px;
+            color: #64748b;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .telescope-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .mpc-badge {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            color: #64748b;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .mpc-badge .cam-id {
+            color: #0284c7;
+            font-weight: 800;
+            margin-right: 6px;
+        }
+
+        /* 修复 iframe 拉伸问题的容器 */
+        .iframe-container {
+            width: 100%;
+            height: 700px;
+            overflow: hidden;
+            position: relative;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        /* 强制覆盖 meteoblue 内部样式，防止被拉伸 */
+        .iframe-container iframe {
+            width: 100% !important;
+            height: 700px !important;
+            border: none;
             display: block;
         }
+
+        .iframe-container + div {
+            display: none !important;
+        }
+
     </style>
 </head>
 <body>
 
-<div class="tab-container">
-    <button class="tab-btn active" onclick="switchTab(event, '2m')">
-        2-Meter 
-        <div class="live-badge"><div class="live-dot"></div>LIVE</div>
-    </button>
-    <button class="tab-btn" onclick="switchTab(event, '04m')">
-        0.4-Meter 
-        <div class="live-badge"><div class="live-dot"></div>LIVE</div>
-    </button>
-    <button class="tab-btn" onclick="switchTab(event, 'nres')">
-        NRES (1-Meter Spectrographs) 
-        <div class="live-badge"><div class="live-dot"></div>LIVE</div>
-    </button>
-</div>
+    <header>
+        <h1>Global Telescope Network (LCO)</h1>
+        <p>Sorted by Longitude (East to West)</p>
+    </header>
 
-<div id="2m" class="tab-content active">
-    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/20.71N-156.26E2944_Pacific%2FHonolulu?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=fcccfa5b95707384&sig=0c2d40742fe388491b6ab3649b5575c976b65aa9281f3b08172433e82e41a732" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe>
-    <div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
-</div>
+    <div class="main-container">
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab(event, 'tab-1m')">
+                1.0-Meter
+                <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+            </button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-2m')">
+                2.0-Meter
+                <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+            </button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-0m4')">
+                0.4-Meter
+                <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+            </button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-nres')">
+                NRES (Spectrographs)
+                <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+            </button>
+        </div>
 
-<div id="04m" class="tab-content">
-    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/20.71N-156.26E2944_Pacific%2FHonolulu?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=fcccfa5b95707384&sig=0c2d40742fe388491b6ab3649b5575c976b65aa9281f3b08172433e82e41a732" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe>
-    <div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
-</div>
+        <div id="tab-1m" class="tab-content active">
+            
+            <div class="widget-card" style="border-top-color: #38bdf8;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 COJ: Siding Spring Observatory - Australia</span>
+                        </div>
+                        <span class="site-coords">31.27°S 149.06°E</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#0284c7">1m0a</span> LCO A (MPC: Q63)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#0284c7">1m0b</span> LCO B (MPC: Q64)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/31.27%C2%B0S+149.06%C2%B0E_-31.273N149.064E1130_Australia%2FSydney?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=255542300441ab6a&sig=426bcbcda7ccee817794ff08f454384f9911a00eb0fccf50a591b94ac3e3e7e8" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
 
-<div id="nres" class="tab-content">
-    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.6N34.76E837_Asia%2FJerusalem?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=6b52f88390d82f5b&sig=ee10b7b95a19272049ed214a0dbce816da9390d9de327c2aba19feec84bd987e" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox" style="width: 100%;height: 700px;border: 0;overflow: hidden;"></iframe>
-    <div><a href="https://www.meteoblue.com/en/weather/week/index" target="_blank" rel="noopener">meteoblue</a></div>
-</div>
+            <div class="widget-card" style="border-top-color: #38bdf8;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 CPT: Sutherland, South Africa (SAAO)</span>
+                        </div>
+                        <span class="site-coords">32.38°S 20.81°E</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#0284c7">1m0a</span> LCO A (MPC: K91)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#0284c7">1m0b</span> LCO B (MPC: K92)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#0284c7">1m0c</span> LCO C (MPC: K93)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/32.38%C2%B0S+20.81%C2%B0E_-32.378N20.811E1760_Africa%2FJohannesburg?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=1d66beae80ed3015&sig=82a994d8c69050d7ff6806df985d7c185216c5bd945710ca0fe9e2502d29186b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
 
-<script>
-    function switchTab(evt, tabId) {
-        // 隐藏所有内容区域
-        var contents = document.getElementsByClassName("tab-content");
-        for (var i = 0; i < contents.length; i++) {
-            contents[i].className = contents[i].className.replace(" active", "");
+            <div class="widget-card" style="border-top-color: #38bdf8;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 TFN: Teide Observatory - Tenerife, Spain</span>
+                        </div>
+                        <span class="site-coords">28.30°N 16.51°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#0284c7">1m0a</span> LCO A (MPC: Z31)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#0284c7">1m0b</span> LCO B (MPC: Z24)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/28.3%C2%B0N+16.51%C2%B0W_28.3N-16.51E2368_Atlantic%2FCanary?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=cbdd7d34479ba702&sig=fa50a85a6a59c9c692b8cf95c44d84e8cff2f8da62767c1b95b1f52d567d383b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card" style="border-top-color: #38bdf8;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 LSC: Region IV, Chile (CTIO)</span>
+                        </div>
+                        <span class="site-coords">30.17°S 70.81°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#0284c7">1m0a</span> LCO A (MPC: W85)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#0284c7">1m0b</span> LCO B (MPC: W86)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#0284c7">1m0c</span> LCO C (MPC: W87)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.17%C2%B0S+70.81%C2%B0W_-30.17N-70.807E2176_America%2FSantiago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=6c412a78f7c4421a&sig=82e91497b06d3dbbb94fa4f271ef078cc031a92a56dc04c1d962f535bb394cb9" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card" style="border-top-color: #38bdf8;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 ELP: McDonald Observatory - Texas, USA</span>
+                        </div>
+                        <span class="site-coords">30.67°N 104.02°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#0284c7">1m0a</span> LCO A (MPC: V37)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#0284c7">1m0b</span> LCO B (MPC: V39)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.67%C2%B0N+104.02%C2%B0W_30.671N-104.022E2069_America%2FChicago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=a411caa4b576bb8a&sig=14e266f521acead676695701f73464b405c72909a2cded68e4e36dedefb27318" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-2m" class="tab-content">
+            
+            <div class="widget-card" style="border-top-color: #a855f7;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 OGG: Haleakala Observatory - Hawaii, USA</span>
+                        </div>
+                        <span class="site-coords">20.71°N 156.26°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#9333ea">2m0a</span> Faulkes North (MPC: F65)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/20.71N-156.26E2944_Pacific%2FHonolulu?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=fcccfa5b95707384&sig=0c2d40742fe388491b6ab3649b5575c976b65aa9281f3b08172433e82e41a732" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card" style="border-top-color: #a855f7;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 COJ: Siding Spring Observatory - Australia</span>
+                        </div>
+                        <span class="site-coords">31.27°S 149.06°E</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#9333ea">2m0a</span> Faulkes South (MPC: E10)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/31.27%C2%B0S+149.06%C2%B0E_-31.273N149.064E1130_Australia%2FSydney?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=255542300441ab6a&sig=426bcbcda7ccee817794ff08f454384f9911a00eb0fccf50a591b94ac3e3e7e8" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="tab-0m4" class="tab-content">
+
+            <div class="widget-card" style="border-top-color: #10b981;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 OGG: Haleakala Observatory - Hawaii, USA</span>
+                        </div>
+                        <span class="site-coords">20.71°N 156.26°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#059669">0m4b</span> Clamshell #1 (MPC: T04)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#059669">0m4c</span> Clamshell #2 (MPC: T03)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/20.71N-156.26E2944_Pacific%2FHonolulu?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=fcccfa5b95707384&sig=0c2d40742fe388491b6ab3649b5575c976b65aa9281f3b08172433e82e41a732" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card" style="border-top-color: #10b981;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 ELP: McDonald Observatory - Texas, USA</span>
+                        </div>
+                        <span class="site-coords">30.67°N 104.02°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#059669">0m4a</span> Aqawan A #1 (MPC: V38)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#059669">0m4b</span> Aqawan B #1 (MPC: V45)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#059669">0m4c</span> Aqawan B #2 (MPC: V47)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.67%C2%B0N+104.02%C2%B0W_30.671N-104.022E2069_America%2FChicago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=a411caa4b576bb8a&sig=14e266f521acead676695701f73464b405c72909a2cded68e4e36dedefb27318" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card" style="border-top-color: #10b981;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 LSC: Region IV, Chile (CTIO)</span>
+                        </div>
+                        <span class="site-coords">30.17°S 70.81°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#059669">0m4a</span> Aqawan A #1 (MPC: W89)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#059669">0m4b</span> Aqawan B #1 (MPC: W79)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.17%C2%B0S+70.81%C2%B0W_-30.17N-70.807E2176_America%2FSantiago?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=6c412a78f7c4421a&sig=82e91497b06d3dbbb94fa4f271ef078cc031a92a56dc04c1d962f535bb394cb9" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card" style="border-top-color: #10b981;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 CPT: Sutherland, South Africa (SAAO)</span>
+                        </div>
+                        <span class="site-coords">32.38°S 20.81°E</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#059669">0m4a</span> Aqawan A #1 (MPC: L09)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/32.38%C2%B0S+20.81%C2%B0E_-32.378N20.811E1760_Africa%2FJohannesburg?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=1d66beae80ed3015&sig=82a994d8c69050d7ff6806df985d7c185216c5bd945710ca0fe9e2502d29186b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card" style="border-top-color: #10b981;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 COJ: Siding Spring Observatory - Australia</span>
+                        </div>
+                        <span class="site-coords">31.27°S 149.06°E</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#059669">0m4a</span> Clamshell #1 (MPC: Q58)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#059669">0m4b</span> Clamshell #2 (MPC: Q59)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/31.27%C2%B0S+149.06%C2%B0E_-31.273N149.064E1130_Australia%2FSydney?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=255542300441ab6a&sig=426bcbcda7ccee817794ff08f454384f9911a00eb0fccf50a591b94ac3e3e7e8" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+            <div class="widget-card" style="border-top-color: #10b981;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 TFN: Teide Observatory - Tenerife, Spain</span>
+                        </div>
+                        <span class="site-coords">28.30°N 16.51°W</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#059669">0m4a</span> Aqawan A #1 (MPC: Z21)</span>
+                        <span class="mpc-badge"><span class="cam-id" style="color:#059669">0m4b</span> Aqawan A #2 (MPC: Z17)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/28.3%C2%B0N+16.51%C2%B0W_28.3N-16.51E2368_Atlantic%2FCanary?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=cbdd7d34479ba702&sig=fa50a85a6a59c9c692b8cf95c44d84e8cff2f8da62767c1b95b1f52d567d383b" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="tab-nres" class="tab-content">
+            
+            <div class="widget-card" style="border-top-color: #f59e0b;">
+                <div class="card-header">
+                    <div class="site-title">
+                        <div class="site-name-wrapper">
+                            <span>📡 TLV: Wise Observatory - Mitzpeh Ramon, Israel</span>
+                        </div>
+                        <span class="site-coords">30.60°N 34.76°E</span>
+                    </div>
+                    <div class="telescope-info">
+                        <span class="mpc-badge"><span class="cam-id" style="color:#d97706">1m0a</span> Wise NRES (MPC: 097)</span>
+                    </div>
+                </div>
+                <div class="iframe-container">
+                    <iframe src="https://www.meteoblue.com/en/weather/widget/meteogram/30.6N34.76E837_Asia%2FJerusalem?geoloc=fixed&temperature_units=CELSIUS&windspeed_units=METER_PER_SECOND&precipitation_units=MILLIMETER&forecast_days=5&layout=bright&autowidth=auto&user_key=219db47375d15b63&embed_key=6b52f88390d82f5b&sig=ee10b7b95a19272049ed214a0dbce816da9390d9de327c2aba19feec84bd987e" frameborder="0" scrolling="NO" allowtransparency="true" sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function switchTab(evt, tabId) {
+            // 隐藏所有内容区域
+            var contents = document.getElementsByClassName("tab-content");
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].classList.remove("active");
+            }
+            
+            // 移除所有按钮的激活状态
+            var btns = document.getElementsByClassName("tab-btn");
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].classList.remove("active");
+            }
+            
+            // 显示当前点击的内容，并高亮该按钮
+            document.getElementById(tabId).classList.add("active");
+            evt.currentTarget.classList.add("active");
         }
-        
-        // 移除所有按钮的激活状态
-        var btns = document.getElementsByClassName("tab-btn");
-        for (var i = 0; i < btns.length; i++) {
-            btns[i].className = btns[i].className.replace(" active", "");
-        }
-        
-        // 显示当前点击的内容，并高亮该按钮
-        document.getElementById(tabId).className += " active";
-        evt.currentTarget.className += " active";
-    }
-</script>
+    </script>
 
 </body>
 </html>
