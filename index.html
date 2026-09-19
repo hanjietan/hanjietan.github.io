@@ -3,180 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hanjie Tan - Academic Homepage</title>
+    <meta name="description" content="Academic homepage of Hanjie Tan, astronomy researcher working on asteroids, comets, meteoroids, and small Solar System bodies.">
+    <title>Hanjie Tan | Astronomy</title>
     <style>
+        :root {
+            --ink: #263442;
+            --text: #52606d;
+            --muted: #7b8794;
+            --link: #0b5ea8;
+            --line: #e8edf2;
+            --surface: #ffffff;
+            --background: #f5f7f9;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background-color: #f4f7f6;
-            color: #333333;
-            line-height: 1.6;
             margin: 0;
-            padding: 0;
+            background: var(--background);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.65;
         }
+
         .container {
-            max-width: 800px;
-            margin: 50px auto;
-            background: #ffffff;
-            padding: 50px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            width: min(820px, calc(100% - 32px));
+            margin: 48px auto;
+            padding: 52px 56px 38px;
+            background: var(--surface);
+            border-radius: 10px;
+            box-shadow: 0 5px 22px rgba(34, 52, 70, 0.06);
         }
+
         header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 42px;
         }
+
         .profile-pic {
-            width: 160px;
-            height: 160px;
-            border-radius: 50%;
+            width: 150px;
+            height: 150px;
             object-fit: cover;
-            border: 3px solid #e9ecef;
-            margin-bottom: 20px;
+            border-radius: 50%;
+            border: 3px solid #edf1f4;
+            margin-bottom: 18px;
         }
+
         h1 {
             margin: 0;
-            color: #2c3e50;
-            font-size: 2.2em;
+            color: var(--ink);
+            font-size: 2.15rem;
+            line-height: 1.2;
+            font-weight: 700;
         }
+
         .chinese-name {
-            font-size: 0.8em;
-            color: #666666;
-            font-weight: normal;
+            color: #65727e;
+            font-size: 0.72em;
+            font-weight: 400;
         }
+
+        .tagline {
+            margin-top: 9px;
+            color: var(--muted);
+            font-size: 0.98rem;
+            letter-spacing: 0.01em;
+        }
+
         .links {
-            margin-top: 15px;
-            font-size: 1.05em;
+            margin-top: 16px;
+            color: #b0b8c0;
+            font-size: 0.98rem;
         }
+
         .links a {
-            margin: 0 10px;
-            color: #0056b3;
+            color: var(--link);
             text-decoration: none;
+            margin: 0 8px;
         }
-        .links a:hover {
+
+        a:hover {
             text-decoration: underline;
         }
+
+        section + section {
+            margin-top: 38px;
+        }
+
         h2 {
-            color: #2c3e50;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
-            margin-top: 40px;
-            font-size: 1.5em;
+            margin: 0 0 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--line);
+            color: var(--ink);
+            font-size: 1.28rem;
+            font-weight: 650;
         }
+
         p {
-            color: #555555;
+            margin: 0;
         }
+
         .publication {
-            margin-bottom: 25px;
-            padding-left: 15px;
-            border-left: 3px solid #0056b3;
+            padding-left: 14px;
+            border-left: 3px solid var(--link);
         }
+
         .pub-title {
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
+            font-size: 1.04rem;
+            font-weight: 650;
+            line-height: 1.45;
         }
-        /* 专门为论文标题超链接设置的样式 */
+
         .pub-title a {
-            color: #0056b3;
+            color: var(--link);
             text-decoration: none;
         }
+
         .pub-title a:hover {
             text-decoration: underline;
         }
+
         .pub-details {
-            color: #555555;
-            font-size: 0.95em;
-        }
-        .pub-details i {
-            color: #0056b3;
+            color: #64717d;
+            font-size: 0.93rem;
         }
 
-        .tool-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px;
-            margin-top: 18px;
+        .pub-details i {
+            color: #405d78;
         }
-        .tool-card {
-            display: block;
-            padding: 18px 20px;
-            border: 1px solid #e6ebef;
-            border-radius: 8px;
-            background: #fafcfd;
-            color: #333333;
+
+        .utilities {
+            margin-top: 46px;
+            padding-top: 18px;
+            border-top: 1px solid var(--line);
+        }
+
+        .utilities-label {
+            margin-bottom: 7px;
+            color: #8a949e;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .utility-row {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            padding: 7px 0;
             text-decoration: none;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         }
-        .tool-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 86, 179, 0.10);
-            border-color: #b9d5f0;
+
+        .utility-name {
+            flex: 0 0 auto;
+            color: var(--link);
+            font-size: 0.94rem;
+            font-weight: 600;
         }
-        .tool-title {
-            color: #0056b3;
-            font-weight: bold;
-            font-size: 1.05em;
-            margin-bottom: 4px;
+
+        .utility-description {
+            color: #7b8792;
+            font-size: 0.88rem;
         }
-        .tool-description {
-            color: #666666;
-            font-size: 0.92em;
+
+        .utility-arrow {
+            margin-left: auto;
+            color: #a0a9b2;
+            font-size: 0.9rem;
         }
+
+        .utility-row:hover {
+            text-decoration: none;
+        }
+
+        .utility-row:hover .utility-name {
+            text-decoration: underline;
+        }
+
         @media (max-width: 620px) {
             .container {
-                margin: 20px 12px;
-                padding: 30px 22px;
+                width: min(100% - 20px, 820px);
+                margin: 18px auto;
+                padding: 34px 24px 28px;
             }
-            .tool-grid {
-                grid-template-columns: 1fr;
+
+            .profile-pic {
+                width: 132px;
+                height: 132px;
+            }
+
+            h1 {
+                font-size: 1.9rem;
+            }
+
+            .links {
+                line-height: 2;
+            }
+
+            .utility-row {
+                display: grid;
+                grid-template-columns: 1fr auto;
+                gap: 0 8px;
+            }
+
+            .utility-description {
+                grid-column: 1 / 2;
+            }
+
+            .utility-arrow {
+                grid-column: 2;
+                grid-row: 1 / 3;
+                align-self: center;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <main class="container">
         <header>
             <img src="avatar.jpg" alt="Hanjie Tan" class="profile-pic">
             <h1>Hanjie Tan <span class="chinese-name">(谭瀚杰)</span></h1>
+            <div class="tagline">Astronomy · Small Solar System Bodies</div>
             <div class="links">
-                <a href="mailto:h.tan1996@hotmail.com">Email</a> | 
-                <a href="https://scholar.google.com/citations?user=eFIMjAcAAAAJ&hl=en&oi=ao" target="_blank">Google Scholar</a> | 
-                <a href="https://orcid.org/0000-0002-6144-3062" target="_blank">ORCID</a> | 
-                <a href="https://www.facebook.com/honkit.tan/" target="_blank">Facebook</a>
+                <a href="mailto:h.tan1996@hotmail.com">Email</a> ·
+                <a href="https://scholar.google.com/citations?user=eFIMjAcAAAAJ&hl=en&oi=ao" target="_blank" rel="noopener">Google Scholar</a> ·
+                <a href="https://orcid.org/0000-0002-6144-3062" target="_blank" rel="noopener">ORCID</a> ·
+                <a href="https://www.facebook.com/honkit.tan/" target="_blank" rel="noopener">Facebook</a>
             </div>
         </header>
 
         <section id="about">
             <h2>About Me</h2>
-            <p>I am an astronomy researcher interested in <b>A</b>steroids, <b>C</b>omets, and <b>M</b>eteors. Beyond astronomy, I am a genetic genealogy enthusiast (Haplogroups: Y: O1b1a1b-MF188438, mt: B4b1a2) and an amateur radio operator (Call sign: BA7MJD).</p>
-        </section>
-
-
-        <section id="observing-tools">
-            <h2>Observing Tools</h2>
-            <div class="tool-grid">
-                <a class="tool-card" href="LCO_weather.html">
-                    <div class="tool-title">LCO Weather</div>
-                    <div class="tool-description">Weather dashboard for the Las Cumbres Observatory global telescope network.</div>
-                </a>
-                <a class="tool-card" href="observatory_weather.html">
-                    <div class="tool-title">Observatory Weather</div>
-                    <div class="tool-description">Weather dashboard for selected observatories and telescope sites.</div>
-                </a>
-            </div>
+            <p>
+                I am an astronomy researcher working on small bodies in the Solar System, with a particular interest in
+                asteroids, comets, and meteoroids. My research interests include physical characterization, cometary activity,
+                orbital evolution, impact phenomena, and time-domain observations. Outside astronomy, I am interested in
+                genetic genealogy (Y: O1b1a1b-MF188438; mtDNA: B4b1a2) and amateur radio (BA7MJD).
+            </p>
         </section>
 
         <section id="publications">
             <h2>Publications</h2>
-            
             <div class="publication">
                 <div class="pub-title">
-                    <a href="https://iopscience.iop.org/article/10.3847/2041-8213/ae3c97" target="_blank">Perihelion Asymmetry in the Water Production Rate of the Interstellar Object 3I/ATLAS</a>
+                    <a href="https://iopscience.iop.org/article/10.3847/2041-8213/ae3c97" target="_blank" rel="noopener">
+                        Perihelion Asymmetry in the Water Production Rate of the Interstellar Object 3I/ATLAS
+                    </a>
                 </div>
-                <div class="pub-details">H Tan, X Yan, JY Li - <i>The Astrophysical Journal Letters</i>, 2026</div>
+                <div class="pub-details">H. Tan, X. Yan, J. Y. Li — <i>The Astrophysical Journal Letters</i>, 2026</div>
             </div>
-            
         </section>
-    </div>
+
+        <nav class="utilities" aria-label="Observing utilities">
+            <div class="utilities-label">Observing Utilities</div>
+
+            <a class="utility-row" href="lco-network-forecast.html">
+                <span class="utility-name">LCO Network Forecast</span>
+                <span class="utility-description">Weather outlook across the Las Cumbres Observatory network</span>
+                <span class="utility-arrow">→</span>
+            </a>
+
+            <a class="utility-row" href="observatory-forecasts.html">
+                <span class="utility-name">Observatory Forecasts</span>
+                <span class="utility-description">Meteograms for selected observing sites</span>
+                <span class="utility-arrow">→</span>
+            </a>
+        </nav>
+    </main>
 </body>
 </html>
