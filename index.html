@@ -90,6 +90,47 @@
         .pub-details i {
             color: #0056b3;
         }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 18px;
+        }
+        .tool-card {
+            display: block;
+            padding: 18px 20px;
+            border: 1px solid #e6ebef;
+            border-radius: 8px;
+            background: #fafcfd;
+            color: #333333;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .tool-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 86, 179, 0.10);
+            border-color: #b9d5f0;
+        }
+        .tool-title {
+            color: #0056b3;
+            font-weight: bold;
+            font-size: 1.05em;
+            margin-bottom: 4px;
+        }
+        .tool-description {
+            color: #666666;
+            font-size: 0.92em;
+        }
+        @media (max-width: 620px) {
+            .container {
+                margin: 20px 12px;
+                padding: 30px 22px;
+            }
+            .tool-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -108,6 +149,21 @@
         <section id="about">
             <h2>About Me</h2>
             <p>I am an astronomy researcher interested in <b>A</b>steroids, <b>C</b>omets, and <b>M</b>eteors. Beyond astronomy, I am a genetic genealogy enthusiast (Haplogroups: Y: O1b1a1b-MF188438, mt: B4b1a2) and an amateur radio operator (Call sign: BA7MJD).</p>
+        </section>
+
+
+        <section id="observing-tools">
+            <h2>Observing Tools</h2>
+            <div class="tool-grid">
+                <a class="tool-card" href="LCO_weather.html">
+                    <div class="tool-title">LCO Weather</div>
+                    <div class="tool-description">Weather dashboard for the Las Cumbres Observatory global telescope network.</div>
+                </a>
+                <a class="tool-card" href="observatory_weather.html">
+                    <div class="tool-title">Observatory Weather</div>
+                    <div class="tool-description">Weather dashboard for selected observatories and telescope sites.</div>
+                </a>
+            </div>
         </section>
 
         <section id="publications">
