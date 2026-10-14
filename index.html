@@ -110,6 +110,10 @@
             border-left: 3px solid var(--link);
         }
 
+        .publication + .publication {
+            margin-top: 26px;
+        }
+
         .pub-title {
             margin-bottom: 4px;
             font-size: 1.04rem;
@@ -129,6 +133,15 @@
         .pub-details {
             color: #64717d;
             font-size: 0.93rem;
+        }
+
+        .pub-details strong {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .pub-details > div + div {
+            margin-top: 3px;
         }
 
         .pub-details i {
@@ -250,11 +263,25 @@
             <h2>Publications</h2>
             <div class="publication">
                 <div class="pub-title">
+                    <a href="https://iopscience.iop.org/article/10.3847/2041-8213/aeaa5b" target="_blank" rel="noopener">
+                        The Non-principal-axis Rotation and Convex Shape Model of the Earth Quasi-satellite and Target of China’s Tianwen-2 Mission (469219) Kamo‘oalewa
+                    </a>
+                </div>
+                <div class="pub-details">
+                    <div>Xiaoyu Sun, Zhijun Song, <strong>Hanjie Tan</strong>, Bin Yang, Josef Ďurech, Nicholas Moskovitz, Audrey Thirouin, Samantha Hemmelgarn, Wen Bo, Yang Yu, Jian-Yang Li</div>
+                    <div><i>The Astrophysical Journal Letters</i>, 2026</div>
+                </div>
+            </div>
+            <div class="publication">
+                <div class="pub-title">
                     <a href="https://iopscience.iop.org/article/10.3847/2041-8213/ae3c97" target="_blank" rel="noopener">
                         Perihelion Asymmetry in the Water Production Rate of the Interstellar Object 3I/ATLAS
                     </a>
                 </div>
-                <div class="pub-details">H. Tan, X. Yan, J. Y. Li — <i>The Astrophysical Journal Letters</i>, 2026</div>
+                <div class="pub-details">
+                    <div><strong>Hanjie Tan</strong>, Xiaoran Yan, Jian-Yang Li</div>
+                    <div><i>The Astrophysical Journal Letters</i>, 2026</div>
+                </div>
             </div>
         </section>
 
