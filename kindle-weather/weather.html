@@ -273,7 +273,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 (function (root) {
   "use strict";
-  var RADIUS = 6378137, HALF_WORLD = 20037508.342789244, GRID = 9;
+  var RADIUS = 6378137, HALF_WORLD = 20037508.342789244, GRID = 9, FRAME_COUNT = 9;
   var cache = {}, cacheOrder = [], pending = {}, MAX_CACHE = 15;
   var BINS = [
     {min: 0, max: 0.1, gray: 255, label: "<0.1"},
@@ -339,7 +339,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     var query = [["latitude", g.latitudes.join(",")], ["longitude", g.longitudes.join(",")],
       ["hourly", "precipitation"], ["precipitation_unit", "mm"], ["timeformat", "unixtime"],
       ["timezone", "GMT"], ["cell_selection", "nearest"],
-      ["start_hour", utcHour(firstEnd)], ["end_hour", utcHour(firstEnd + 7200)]],
+      ["start_hour", utcHour(firstEnd)], ["end_hour", utcHour(firstEnd + (FRAME_COUNT - 1) * 3600)]],
       values = [], i;
     for (i = 0; i < query.length; i++) {
       values.push(encodeURIComponent(query[i][0]) + "=" + encodeURIComponent(query[i][1]));
@@ -390,7 +390,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       throw new Error("Unexpected number of forecast grid locations");
     }
     var frames = [], frame, values, i, j, h, units, index, end, missing = 0;
-    for (j = 0; j < 3; j++) {
+    for (j = 0; j < FRAME_COUNT; j++) {
       values = []; end = firstEnd + j * 3600;
       for (i = 0; i < data.length; i++) {
         h = data[i].hourly; units = data[i].hourly_units;
@@ -428,12 +428,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       url = urlFor(o, g, firstEnd);
     } catch (error) { callback(String(error.message || error), null); return; }
     /* Windowed URLs enforce at most one 81-location request per clock hour
-     * and viewport, including five-minute client refreshes. Cache hits retain
+     * and viewport. Nine hourly frames cover the six-hour network interval;
+     * the client rolls its three visible choices locally. Cache hits retain
      * the successful network retrieval timestamp, rather than the current time.
      */
     /* Discard previous hourly windows before keeping up to fifteen selected
-     * viewports. Five saved regions therefore normally retain fifteen canvases
-     * (~15 MB at 500 px), rather than keeping old-hour canvases indefinitely.
+     * viewports. Five saved regions normally retain forty-five canvases (~45 MB
+     * at 500 px), rather than keeping old-hour canvases indefinitely.
      */
     for (var old = cacheOrder.length - 1; old >= 0; old--) {
       var oldKey = cacheOrder[old], oldResult = cache[oldKey];
@@ -492,7 +493,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   var LOCATION_KEY = "kindle-location-v1";
   var config = root.KindleClientConfig || {};
   var selectedLocation = initialLocation();
-  var LAT = selectedLocation.latitude, LON = selectedLocation.longitude, ZOOM = 7, PERIOD = 300000;
+  var LAT = selectedLocation.latitude, LON = selectedLocation.longitude, ZOOM = 7, PERIOD = 21600000;
   var TIMEZONE = "Asia/Shanghai", UTC_OFFSET = 28800;
   var CACHE_KEY = "kindle-forecast-v2:" + LAT + ":" + LON + ":" + TIMEZONE;
   var protocol = config.protocol || (root.location.protocol === "https:" ? "https:" : "http:");
@@ -502,7 +503,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   var page = /(?:\?|&)page=radar(?:&|$)/.test(root.location.search) ? "radar" : "weather";
   if (/(?:\?|&)page=future(?:&|$)/.test(root.location.search)) page = "future";
   var forecast = null, fetchedAt = null, radarCanvas = null, radarStamp = null;
-  var futureData = null, futureIndex = 0, futureFetchedAt = null, futureError = null;
+  var futureData = null, futureIndex = 0, futureFetchedAt = null, futureError = null, futureFrames = [];
+  var futureDisplayTimer = null, futureDisplayGeneration = 0;
   var timer = null, token = 0, baseCache = {}, baseUsed = 0, awake = null, awakeMessage = "", statusMessage = "";
   var locationName = selectedLocation.name;
   var coordinates = LAT.toFixed(4) + "°N " + LON.toFixed(4) + "°E";
@@ -677,9 +679,20 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     footer("实况 " + clock(radarStamp) + (radarStamp && now() / 1000 - radarStamp > 1800 ? " · 数据过期" : ""));
   }
   function renderFuture() {
+    futureFrames = [];
+    var available = futureData && futureData.frames || [], instant = now() / 1000;
+    for (var i = 0; i < available.length && futureFrames.length < 3; i++) {
+      if (available[i].endTime > instant) futureFrames.push(available[i]);
+    }
+    for (i = 0; i < 3; i++) {
+      var button = document.getElementById("future-" + i), option = futureFrames[i];
+      button.disabled = !option;
+      button.innerHTML = option ? clock(option.startTime) + "–" + clock(option.endTime) : futureData ? "暂无" : "时段" + (i + 1);
+    }
+    futureIndex = futureFrames.length ? Math.min(futureIndex, futureFrames.length - 1) : 0;
     base("未来降雨");
     text(20, 91, "小时预报", 21, true);
-    var frame = futureData && futureData.frames[futureIndex];
+    var frame = futureFrames[futureIndex];
     if (frame) {
       text(20, 124, clock(frame.startTime) + "–" + clock(frame.endTime) + (frame.endTime * 1000 <= now() ? " · 已过去" : "") + (frame.missingCount ? " · " + frame.missingCount + "格缺测" : ""), 17, true);
       var layer = grid(); layer.getContext("2d").drawImage(frame.image, 0, 0); annotate(layer);
@@ -695,7 +708,26 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         ctx.strokeStyle = "#888"; ctx.strokeRect(bx, 698, 57, 18); text(bx, 721, bin.label || number(bin.min, 1) + "+", 12);
       }
       footer("取得 " + clock(futureFetchedAt / 1000) + (now() - futureFetchedAt > 3600000 ? " · 数据过期" : "") + (bins.length > 8 ? " · 部分图例" : ""));
-    } else text(300, 350, futureError ? "暂无降雨预报" : "正在读取预报", 24, true, "center");
+    } else {
+      text(300, 350, futureData ? "暂无有效预报时段" : futureError ? "暂无降雨预报" : "正在读取预报", 24, true, "center");
+      if (futureFetchedAt) footer("取得 " + clock(futureFetchedAt / 1000) + " · 时段已结束");
+    }
+  }
+  function cancelFutureDisplay() {
+    futureDisplayGeneration++;
+    if (futureDisplayTimer !== null) root.clearTimeout(futureDisplayTimer);
+    futureDisplayTimer = null;
+  }
+  function scheduleFutureDisplay() {
+    cancelFutureDisplay();
+    if (page !== "future" || !futureData || !futureFrames.length) return;
+    var generation = futureDisplayGeneration, data = futureData, area = selectedLocation.id;
+    // Cross the next UTC hour locally. This callback never fetches data or
+    // resets the independent six-hour network refresh timer.
+    futureDisplayTimer = root.setTimeout(function () {
+      if (generation !== futureDisplayGeneration || page !== "future" || futureData !== data || selectedLocation.id !== area) return;
+      futureDisplayTimer = null; render();
+    }, 3600000 - now() % 3600000 + 50);
   }
   function render() {
     for (var i = 0; i < LOCATIONS.length; i++) {
@@ -710,7 +742,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     var futureCredit = '<a href="' + htmlText(futureURL) + '">' + htmlText(futureSource()) + '</a>' + license;
     var credits = page === "future" ? futureCredit : page === "radar" ? 'Weather data by <a href="https://www.rainviewer.com/">RainViewer</a>' + (useOSM ? ' · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>' : '') : '<a href="https://open-meteo.com/">Open-Meteo</a>' + license;
     document.getElementById("credits").innerHTML = credits;
-    if (page === "radar") renderRadar(); else if (page === "future") renderFuture(); else renderWeather(); fit();
+    if (page === "radar") renderRadar(); else if (page === "future") renderFuture(); else renderWeather(); fit(); scheduleFutureDisplay();
   }
   function fit() {
     var w = root.innerWidth || document.documentElement.clientWidth, h = root.innerHeight || document.documentElement.clientHeight;
@@ -845,7 +877,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       } else if (requestedPage === "future") {
         if (!data || !data.frames || data.frames.length < 3) { done("未来预报时段不完整"); return; }
         futureData = data; futureFetchedAt = typeof data.fetchedAt === "number" ? (data.fetchedAt < 100000000000 ? data.fetchedAt * 1000 : data.fetchedAt) : now(); futureError = null;
-        for (var fi = 0; fi < 3; fi++) document.getElementById("future-" + fi).innerHTML = clock(data.frames[fi].startTime) + "–" + clock(data.frames[fi].endTime);
       } else { radarCanvas = data; radarStamp = stamp; }
       render(); setStatus(label + "已更新"); schedule(PERIOD);
     }
@@ -869,25 +900,26 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     // Invalidate all callbacks before changing the location labels. Keep the
     // same document and keep-awake instance running across area changes.
     token++;
+    cancelFutureDisplay();
     if (timer !== null) root.clearTimeout(timer); timer = null;
     selectedLocation = area; LAT = area.latitude; LON = area.longitude;
     locationName = area.name; coordinates = LAT.toFixed(4) + "°N " + LON.toFixed(4) + "°E";
     CACHE_KEY = "kindle-forecast-v2:" + LAT + ":" + LON + ":" + TIMEZONE;
     weatherURL = makeWeatherURL(); cities = cityLabels(area);
     forecast = null; fetchedAt = null; radarCanvas = null; radarStamp = null;
-    futureData = null; futureIndex = 0; futureFetchedAt = null; futureError = null;
+    futureData = null; futureIndex = 0; futureFetchedAt = null; futureError = null; futureFrames = [];
     for (var i = 0; i < 3; i++) document.getElementById("future-" + i).innerHTML = "时段" + (i + 1);
     try { root.localStorage.setItem(LOCATION_KEY, area.id); } catch (ignore) {}
     loadForecastCache();
     root.KindleClient.weatherURL = weatherURL; root.KindleClient.cacheKey = CACHE_KEY;
     render(); update(); return true;
   }
-  function select(which) { page = which; if (which === "future") futureError = null; render(); update(); }
+  function select(which) { cancelFutureDisplay(); page = which; if (which === "future") futureError = null; render(); update(); }
   for (var li = 0; li < LOCATIONS.length; li++) (function (id) { document.getElementById("area-" + id).onclick = function () { selectLocation(id); }; })(LOCATIONS[li].id);
   document.getElementById("weather").onclick = function () { select("weather"); };
   document.getElementById("radar").onclick = function () { select("radar"); };
   document.getElementById("future").onclick = function () { select("future"); };
-  for (var fi = 0; fi < 3; fi++) (function (index) { document.getElementById("future-" + index).onclick = function () { futureIndex = index; render(); }; })(fi);
+  for (var fi = 0; fi < 3; fi++) (function (index) { document.getElementById("future-" + index).onclick = function () { if (futureFrames[index]) { futureIndex = index; render(); } }; })(fi);
   document.getElementById("refresh").onclick = update;
   canvas.onclick = function () { select(page === "weather" ? "radar" : page === "radar" ? "future" : "weather"); };
   if (typeof root.KindleKeepAwake === "function") {
@@ -898,14 +930,15 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     }});
     document.getElementById("awake").onclick = function () { if (awake.getState().requested) awake.disable(); else awake.enable(); };
   }
-  function stop() { token++; if (timer !== null) root.clearTimeout(timer); timer = null; if (awake) awake.disable(); }
+  function stop() { token++; cancelFutureDisplay(); if (timer !== null) root.clearTimeout(timer); timer = null; if (awake) awake.disable(); }
   root.addEventListener("pagehide", stop, false); root.addEventListener("beforeunload", stop, false); root.onresize = fit;
   loadForecastCache();
   // Pure helpers are exposed for headless/off-device verification only.
   root.KindleClient = {weatherURL:weatherURL, project:point, clock:clock, bbox:bbox, tomorrowIndex:tomorrowIndex, cacheKey:CACHE_KEY,
     locations:LOCATIONS, selectLocation:selectLocation, getState:function () {
       return {locationId:selectedLocation.id,page:page,hasForecast:!!forecast,hasRadar:!!radarCanvas,hasFuture:!!futureData,
-        temperature:forecast && forecast.current ? forecast.current.temperature_2m : null,radarStamp:radarStamp,futureFetchedAt:futureFetchedAt,futureIndex:futureIndex};
+        temperature:forecast && forecast.current ? forecast.current.temperature_2m : null,radarStamp:radarStamp,futureFetchedAt:futureFetchedAt,futureIndex:futureIndex,
+        futureFrameCount:futureData ? futureData.frames.length : 0,futureEndTimes:futureFrames.map(function (frame) { return frame.endTime; }),futureDisplayTimerActive:futureDisplayTimer !== null};
     }};
   render(); update();
 })(this);
