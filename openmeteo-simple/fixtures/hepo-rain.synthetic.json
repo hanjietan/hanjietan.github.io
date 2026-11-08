@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "source": "qweather",
   "location": {
     "id": "hepo",
@@ -11,11 +11,34 @@
   },
   "fetchedAt": 1794111012,
   "updatedAt": 1794111000,
-  "validUntil": 1794111900,
+  "validUntil": 1794111612,
   "knownHorizonEnd": 1794118200,
-  "alert": {
-    "kind": "rain",
-    "forecastTime": 1794112200,
-    "timing": "approximate"
+  "outlook": {
+    "periods": [
+      {
+        "from": 1794111012,
+        "to": 1794112200,
+        "kind": "dry",
+        "strength": null
+      },
+      {
+        "from": 1794112200,
+        "to": 1794112500,
+        "kind": "rain",
+        "strength": "light"
+      },
+      {
+        "from": 1794112500,
+        "to": 1794112800,
+        "kind": "rain",
+        "strength": "moderate"
+      },
+      {
+        "from": 1794112800,
+        "to": 1794118200,
+        "kind": "dry",
+        "strength": null
+      }
+    ]
   }
 }

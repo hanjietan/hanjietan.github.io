@@ -1,13 +1,13 @@
 {
-  "bytes": 52379,
-  "base64_bytes": 69840,
-  "sha256": "ba0ebbcec0438db61d97ca3c696139a3f0b3917b94ca96d29ba3549666f39d79",
+  "bytes": 56403,
+  "base64_bytes": 75204,
+  "sha256": "8e6300b628211d0d8ad0ee261349d9049ec28c657a8a047965555bd39cc310d6",
   "source_sha256": {
-    "index.html": "1980d2d7f0371d0f5a3912163bf42017078eba55d09ec29984bae8bbc1cb2363",
+    "index.html": "012e24b452f9729834aa8d65fb2c25437edfcd9e1138e3858482f7d7e645e9b6",
     "keep-awake.js": "a9f6b38de217c0ff86a0ac47c072d15871d80ddf7a5e38e6eb2121795c9d0fda",
-    "rain_cache.js": "c29164dbe690ee9e7e942350f9139fb5fbb37ece0bf2ea08b0b32847a8f11c8b",
+    "rain_cache.js": "8e45d1da60a90cac0143783b2b68368e4ac735d943e2f4c52b78c876953b5195",
     "provider.js": "370a76ea82917070b3bc5dbb9689740335b4b894b05b5f4c93a39e2d758da1a1",
-    "client.js": "198ad63c7365e57ecde58ca22a28842660d714325dbcb9c89048e4f840b87d0e"
+    "client.js": "a1be9e889875314997dfacee1af140b784acfcb830e6fef8d8986d633897153c"
   },
   "source": "open-meteo",
   "additional_sources": [
@@ -18,8 +18,12 @@
     "open-meteo": "direct public API",
     "qweather": "public GitHub cache only"
   },
-  "qweather_cache_schema": 2,
-  "qweather_public_data": "derived alert only",
+  "qweather_cache_schema": 3,
+  "qweather_compatible_schemas": [
+    3,
+    2
+  ],
+  "qweather_public_data": "compact derived outlook only",
   "direct_provider_calls": true,
   "credentials_embedded": false,
   "fallback_provider": null,

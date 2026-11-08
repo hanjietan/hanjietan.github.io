@@ -53,7 +53,7 @@
     var bins=[],previous=-1;
     for(var i=0;i<raw.minutely.length;i++){
       var row=raw.minutely[i],time=row&&typeof row==="object"?parseTime(row.fxTime):null;
-      if(time===null||time===undefined||time<=previous)throw new Error("invalid_forecast_times");
+      if(time===null||time===undefined||time<=previous||previous>=0&&(time-previous<300||(time-previous)%300!==0))throw new Error("invalid_forecast_times");
       previous=time;
       bins.push({time:time,precipitation:precipitation(row.precip),type:row.type==="rain"||row.type==="snow"?row.type:null});
     }

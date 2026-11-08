@@ -43,7 +43,8 @@ def main():
               "source": "open-meteo", "additional_sources": ["qweather"],
               "runtime_transport": "direct public Open-Meteo Forecast API + public GitHub short-term cache",
               "source_transports": {"open-meteo": "direct public API", "qweather": "public GitHub cache only"},
-              "qweather_cache_schema": 2, "qweather_public_data": "derived alert only",
+              "qweather_cache_schema": 3, "qweather_compatible_schemas": [3, 2],
+              "qweather_public_data": "compact derived outlook only",
               "direct_provider_calls": True, "credentials_embedded": False,
               "fallback_provider": None, "external_script_dependencies": [],
               "synthetic_data_embedded": False}

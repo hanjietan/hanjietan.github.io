@@ -136,7 +136,7 @@ test('schema3 publishes qualitative periods and preserves unknown coverage', asy
   for (const secret of [input.privateKeyPem, input.apiHost, input.kid, input.iss, input.sub]) assert.equal(text.includes(secret), false);
 });
 test('stale, regressed, future or malformed provider data preserves exact old cache bytes and timestamps', async t => {
-  for (const kind of ['stale', 'regressed', 'future', 'bad-axis']) {
+  for (const kind of ['stale', 'regressed', 'future', 'bad-axis', 'overlapping-bins', 'uneven-bins']) {
     const f = files(t); await slot(f, 'first', NOW);
     const before = fs.readFileSync(f.cache, 'utf8');
     let response = raw(NOW + 300);
@@ -144,6 +144,8 @@ test('stale, regressed, future or malformed provider data preserves exact old ca
     if (kind === 'regressed') response = raw(NOW - 300);
     if (kind === 'future') response = raw(NOW + 3600);
     if (kind === 'bad-axis') response.minutely[1].fxTime = response.minutely[0].fxTime;
+    if (kind === 'overlapping-bins') response.minutely[1].fxTime = iso(NOW + 360);
+    if (kind === 'uneven-bins') response.minutely[1].fxTime = iso(NOW + 601);
     const {result} = await slot(f, 'second', NOW + 300, async () => ({statusCode: 200, raw: response}));
     assert.equal(result.status, 'failed'); assert.equal(fs.readFileSync(f.cache, 'utf8'), before);
     assert.equal(s.loadState(f.state).lastSuccess.fetchedAt, NOW);

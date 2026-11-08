@@ -80,8 +80,13 @@
   function renderFooter(){
     if(rainReader)rainHint=rainReader.getHint();
     ctx.fillStyle="#fff";ctx.fillRect(0,635,600,81);
-    if(rainHint.visible)text(300,655,rainHint.text,32,true,"center");
-    else text(300,655,"数据取得 "+clock(cache?cache.fetchedAt:null,true),21,false,"center");
+    var message=rainHint.text||"雨情更新中",size=32;
+    if(typeof ctx.measureText==="function"){
+      ctx.font="bold "+size+"px sans-serif";
+      while(size>28&&ctx.measureText(message).width>544){size--;ctx.font="bold "+size+"px sans-serif";}
+    }
+    text(300,639,message,size,true,"center");
+    text(300,691,"短时预报·和风天气 · 天气取得 "+clock(cache?cache.fetchedAt:null,true),18,false,"center");
   }
   function render() {
     var instant=now()/1000,today=targetDay(instant,0),current=currentAt(cache);

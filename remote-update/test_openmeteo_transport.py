@@ -67,6 +67,50 @@ process.stdout.write('PASS');
         with self.assertRaises(ValueError):
             transport.envelope(self.client.replace(b"</body>", b"<p>qweather</p></body>"))
 
+    def test_schema3_qualitative_periods_roundtrip_through_the_installed_transport(self):
+        """The transport must preserve derived states without imposing schema2."""
+        with zipfile.ZipFile(ROOT.parent / "runtime/frozen/weather-full-20261108-032139z/weather-full.zip") as archive:
+            loader = archive.read("local/remote-update/meteoblue-loader.js").decode("utf-8")
+        cases = []
+        for kind, strength in (("dry", None), ("unknown", None), ("snow", None),
+                               ("rain", "light"), ("rain", "moderate"),
+                               ("rain", "heavy"), ("rain", "violent")):
+            outlook = {"schemaVersion": 3, "source": "qweather", "fetchedAt": 1794112200,
+                       "updatedAt": 1794111480, "validUntil": 1794112800,
+                       "outlook": {"periods": [{"from": 1794112200, "to": 1794119400,
+                                                "kind": kind, "strength": strength}]}}
+            addition = (transport.RAIN_SOURCE_MARKER + '<script type="application/json" id="fixture">' +
+                        json.dumps(outlook, ensure_ascii=False) + '</script>').encode("utf-8")
+            client = self.client.replace(b"</body>", addition + b"</body>")
+            wrapped = transport.envelope(client).decode("utf-8")
+            script = re.findall(r"<script\b[^>]*>(.*?)</script\s*>", wrapped, re.S | re.I)
+            self.assertEqual(len(script), 1)
+            cases.append({"client": client.decode("utf-8"), "envelope": wrapped,
+                          "script": script[0], "sha256": hashlib.sha256(client).hexdigest()})
+        code = r'''
+const vm=require('node:vm'),fs=require('node:fs'),assert=require('node:assert/strict');
+const p=JSON.parse(fs.readFileSync(0,'utf8'));
+for(const c of p.cases){
+  const writes=[],timers=[],root={atob:s=>Buffer.from(s,'base64').toString('binary'),escape,decodeURIComponent,
+    KindleRemoteUpdateState:{source:'meteoblue-cache',mode:'remote'},setTimeout(fn,delay){assert.equal(delay,0);timers.push(fn);},
+    document:{body:{textContent:''},open(){},write(s){writes.push(s)},close(){}}};
+  vm.runInNewContext(p.loader,root);assert.equal(root.KindleRemoteLoader.validHTML(c.envelope),true);
+  vm.runInNewContext(c.script,root);assert.equal(writes.length,0);assert.equal(timers.length,1);timers[0]();
+  assert.deepEqual(writes,[c.client]);assert.equal(root.KindleWeatherPackage.clientSHA256,c.sha256);
+  assert.equal(root.KindleRemoteUpdateState.source,'open-meteo');
+  assert.equal(JSON.stringify(root.KindleRemoteUpdateState.sources),'["open-meteo","qweather"]');
+  assert.equal(JSON.stringify(root.KindleWeatherPackage.actualSources),'["open-meteo","qweather"]');
+  const payload=JSON.parse(writes[0].match(/<script type="application\/json" id="fixture">(.*?)<\/script>/s)[1]);
+  assert.equal(payload.schemaVersion,3);assert.equal(payload.source,'qweather');
+  assert.equal(payload.outlook.periods.length,1);assert.ok(!('raw' in payload));
+}
+process.stdout.write('PASS');
+'''
+        run = subprocess.run(["node", "-e", code], input=json.dumps({"loader": loader, "cases": cases}),
+                             text=True, capture_output=True)
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        self.assertEqual(run.stdout, "PASS")
+
     def test_secret_or_external_script_is_rejected_before_creating_an_envelope(self):
         for extra in ('<script src="https://example.invalid/a.js"></script>',
                       '<p>https://example.invalid/?apikey=not-a-real-key</p>',
