@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "location": {
+    "id": "hepo",
+    "name": "揭西河婆",
+    "latitude": 23.44,
+    "longitude": 115.84,
+    "datum": "GCJ02",
+    "timezone": "Asia/Shanghai"
+  },
+  "ledger": {
+    "5980459": {
+      "runId": "42476533937-1",
+      "slot": 5980459,
+      "month": "2026-11",
+      "reservedAt": 1794137826,
+      "attemptedAt": null,
+      "status": "reserved"
+    }
+  },
+  "monthlyCounts": {
+    "2026-11": 1
+  },
+  "paused": null,
+  "lastSuccess": null
+}
