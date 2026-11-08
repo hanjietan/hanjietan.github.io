@@ -1,15 +1,25 @@
 {
-  "bytes": 44064,
-  "base64_bytes": 58752,
-  "sha256": "8351f864a9acb85cac08b81ab951680f0192c66e110bf21d79156a4c2c99a0e9",
+  "bytes": 52316,
+  "base64_bytes": 69756,
+  "sha256": "45ca8465d729b5155e7800ba98d6ae0924a467062ac4ce95f1c115c00ac05ff7",
   "source_sha256": {
-    "index.html": "5da0a5f2bf1b1c7267b5039742606e94488e7cce1c9d3a4a44622112d20db72c",
+    "index.html": "1980d2d7f0371d0f5a3912163bf42017078eba55d09ec29984bae8bbc1cb2363",
     "keep-awake.js": "a9f6b38de217c0ff86a0ac47c072d15871d80ddf7a5e38e6eb2121795c9d0fda",
+    "rain_cache.js": "37624ed0c1928212706c14e218aad21153cc97c66f859c63ade1d3289223a52e",
     "provider.js": "370a76ea82917070b3bc5dbb9689740335b4b894b05b5f4c93a39e2d758da1a1",
-    "client.js": "a7c2c2d87229600e90bbf71e810a2755cdf9b456ff4aba7c847dc30b615d9e1f"
+    "client.js": "198ad63c7365e57ecde58ca22a28842660d714325dbcb9c89048e4f840b87d0e"
   },
   "source": "open-meteo",
-  "runtime_transport": "direct public Open-Meteo Forecast API",
+  "additional_sources": [
+    "qweather"
+  ],
+  "runtime_transport": "direct public Open-Meteo Forecast API + public GitHub short-term cache",
+  "source_transports": {
+    "open-meteo": "direct public API",
+    "qweather": "public GitHub cache only"
+  },
+  "qweather_cache_schema": 2,
+  "qweather_public_data": "derived alert only",
   "direct_provider_calls": true,
   "credentials_embedded": false,
   "fallback_provider": null,

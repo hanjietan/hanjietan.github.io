@@ -1,12 +1,13 @@
 /* ES5 large-type weather display; direct Open-Meteo current and daily data. */
 (function (root) {
   "use strict";
-  var PERIOD=3600000,OFFSET=28800,HEIGHT=716,STORAGE_KEY="kindle-openmeteo-simple-v1:hepo";
+  var PERIOD=21600000,OFFSET=28800,HEIGHT=716,STORAGE_KEY="kindle-openmeteo-simple-v1:hepo";
   var WEATHER={0:"晴",1:"大部晴",2:"多云",3:"阴",45:"雾",48:"雾凇",51:"小毛毛雨",53:"毛毛雨",55:"较强毛毛雨",56:"冻毛毛雨",57:"冻毛毛雨",61:"小雨",63:"中雨",65:"大雨",66:"轻冻雨",67:"强冻雨",71:"小雪",73:"中雪",75:"大雪",77:"雪粒",80:"小阵雨",81:"阵雨",82:"强阵雨",85:"小阵雪",86:"强阵雪",95:"雷雨",96:"雷雨伴冰雹",99:"雷雨伴冰雹"};
   var canvas=document.getElementById("screen"),ctx=canvas.getContext("2d"),controls=document.getElementById("controls");
   var status=document.getElementById("status"),cache=null,networkTimer=null,displayTimer=null;
   var generation=0,displayGeneration=0,stopped=false,statusMessage="",awakeMessage="",awake=null;
-  if(root.KindleRemoteUpdateState)root.KindleRemoteUpdateState.source="open-meteo";
+  var rainReader=null,rainHint={visible:false,text:""};
+  if(root.KindleRemoteUpdateState){root.KindleRemoteUpdateState.source="open-meteo";root.KindleRemoteUpdateState.sources=["open-meteo","qweather"];}
 
   function now() { return new Date().getTime(); }
   function finite(value) { return typeof value === "number" && isFinite(value); }
@@ -22,6 +23,11 @@
   function targetDay(instant, offset) {
     var d = civil(instant), target = new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()+offset));
     return {key:target.getUTCFullYear()+"-"+pad(target.getUTCMonth()+1)+"-"+pad(target.getUTCDate()),month:target.getUTCMonth()+1,day:target.getUTCDate(),weekday:target.getUTCDay()};
+  }
+  function clock(value, date) {
+    if (!timestamp(value)) return "—";
+    var d = civil(value);
+    return (date ? pad(d.getUTCMonth()+1)+"/"+pad(d.getUTCDate())+" " : "")+pad(d.getUTCHours())+":"+pad(d.getUTCMinutes());
   }
   function amount(value, digits) { return finite(value) ? value.toFixed(digits || 0).replace(/^-0$/,"0") : "—"; }
   function rainAmount(value) {
@@ -71,16 +77,24 @@
     text(28,top+103,condition,32,true);
     text(572,top+107,"降水"+rainAmount(row && row.precipitation)+"毫米",29,false,"right");
   }
+  function renderFooter(){
+    if(rainReader)rainHint=rainReader.getHint();
+    ctx.fillStyle="#fff";ctx.fillRect(0,635,600,81);
+    if(rainHint.visible)text(300,655,rainHint.text,32,true,"center");
+    else text(300,655,"数据取得 "+clock(cache?cache.fetchedAt:null,true),21,false,"center");
+  }
   function render() {
     var instant=now()/1000,today=targetDay(instant,0),current=currentAt(cache);
     ctx.fillStyle="#fff";ctx.fillRect(0,0,600,HEIGHT);
     text(28,18,cache?cache.location.name:"揭西河婆",32,true);
     text(572,25,today.month+"月"+today.day+"日 周"+"日一二三四五六".charAt(today.weekday),23,false,"right");
-    text(300,66,current?"当前气温":"等待天气数据",26,false,"center");
+    var valid=current?dayKey(current.time)===today.key?"今天 "+clock(current.time):clock(current.time,true):"";
+    text(300,66,current?"当前气温"+(valid?" · "+valid:""):"等待天气数据",26,false,"center");
     text(300,100,amount(current && current.temperature)+"°C",126,true,"center");
     text(28,242,weatherText(cache,current),32,true);
     text(572,244,"今天 "+temperatureRange(dayFor(cache,instant,0)),30,true,"right");
     rule(282);dayCard(instant,1,303);rule(458);dayCard(instant,2,479);rule(634);
+    renderFooter();
     fit();scheduleDisplay();
   }
   function fit() {
@@ -105,14 +119,15 @@
     if(!root.OpenMeteoProvider || typeof root.OpenMeteoProvider.fetch!=="function"){complete("天气读取器不可用");return;}
     try{root.OpenMeteoProvider.fetch({},complete);}catch(error){complete("无法读取天气");}
   }
-  function stop(){stopped=true;generation++;if(root.OpenMeteoProvider && typeof root.OpenMeteoProvider.cancel==="function")root.OpenMeteoProvider.cancel();cancelDisplay();if(networkTimer!==null)root.clearTimeout(networkTimer);networkTimer=null;if(awake)awake.disable();}
-  document.getElementById("refresh").onclick=refresh;
+  function stop(){stopped=true;generation++;if(rainReader)rainReader.stop();if(root.OpenMeteoProvider && typeof root.OpenMeteoProvider.cancel==="function")root.OpenMeteoProvider.cancel();cancelDisplay();if(networkTimer!==null)root.clearTimeout(networkTimer);networkTimer=null;if(awake)awake.disable();}
+  document.getElementById("refresh").onclick=function(){refresh();if(rainReader)rainReader.refresh();};
   if(typeof root.KindleKeepAwake==="function"){
     awake=new root.KindleKeepAwake({videoOnly:true,onChange:function(state){awakeMessage=state.code==="failed"?"保持显示失败":state.code==="paused"?"保持显示已停止":state.code==="unsupported"?"保持显示不可用":"";document.getElementById("awake").textContent=state.requested?"停止保持":"保持显示";setStatus(statusMessage);}});
     document.getElementById("awake").onclick=function(){if(awake.getState().requested)awake.disable();else awake.enable();};
   }
-  root.addEventListener("pagehide",stop,false);root.addEventListener("beforeunload",stop,false);root.onresize=fit;
+  root.addEventListener("pagehide",stop,false);root.addEventListener("beforeunload",stop,false);root.onresize=function(){fit();renderFooter();};
+  if(typeof root.QWeatherRainCache==="function")rainReader=new root.QWeatherRainCache({onChange:function(hint){if(stopped)return;rainHint=hint;renderFooter();}});
   try{var saved=root.localStorage.getItem(STORAGE_KEY);if(saved)cache=validate(JSON.parse(saved));}catch(ignore){}
-  root.OpenMeteoSimple={validate:validate,dayKey:dayKey,targetDay:targetDay,dayFor:dayFor,currentAt:currentAt,weatherText:weatherText,nextReadAt:nextReadAt,nextMidnight:nextMidnight,getState:function(){var instant=now()/1000,current=currentAt(cache),today=dayFor(cache,instant,0),tomorrow=dayFor(cache,instant,1),after=dayFor(cache,instant,2);return{source:cache?cache.source:null,hasData:!!cache,currentTime:current?current.time:null,currentTemperature:current?current.temperature:null,currentCondition:weatherText(cache,current),todayTime:today?today.time:null,todayRange:temperatureRange(today),tomorrowTime:tomorrow?tomorrow.time:null,afterTomorrowTime:after?after.time:null,today:targetDay(instant,0).key,fetchedAt:cache?cache.fetchedAt:null,networkTimerActive:networkTimer!==null,displayTimerActive:displayTimer!==null};}};
-  render();refresh();
+  root.OpenMeteoSimple={validate:validate,clock:clock,dayKey:dayKey,targetDay:targetDay,dayFor:dayFor,currentAt:currentAt,weatherText:weatherText,nextReadAt:nextReadAt,nextMidnight:nextMidnight,getState:function(){var instant=now()/1000,current=currentAt(cache),today=dayFor(cache,instant,0),tomorrow=dayFor(cache,instant,1),after=dayFor(cache,instant,2);return{source:cache?cache.source:null,hasData:!!cache,currentTime:current?current.time:null,currentTemperature:current?current.temperature:null,currentCondition:weatherText(cache,current),todayTime:today?today.time:null,todayRange:temperatureRange(today),tomorrowTime:tomorrow?tomorrow.time:null,afterTomorrowTime:after?after.time:null,today:targetDay(instant,0).key,fetchedAt:cache?cache.fetchedAt:null,networkTimerActive:networkTimer!==null,displayTimerActive:displayTimer!==null,rain:rainReader?rainReader.getState():null};}};
+  render();refresh();if(rainReader)rainReader.start();
 }(this));

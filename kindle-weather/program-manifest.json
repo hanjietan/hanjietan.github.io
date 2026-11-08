@@ -1,15 +1,20 @@
 {
   "actual_source": "open-meteo",
-  "ui_revision": "today-summary-hourly-no-clock-v1",
-  "client_bytes": 44064,
-  "client_sha256": "8351f864a9acb85cac08b81ab951680f0192c66e110bf21d79156a4c2c99a0e9",
-  "envelope_bytes": 60184,
-  "envelope_sha256": "eeef4e7032e4288ba76ef2666388a990ba3fa3c513dcfd179d260ae540abd046",
-  "transportCompatibility": "legacy-installed-book",
-  "legacyMarkerMeaning": "outer transport only; actual decoded client source is open-meteo",
+  "actual_sources": [
+    "open-meteo",
+    "qweather"
+  ],
+  "additional_sources": [
+    "qweather"
+  ],
+  "ui_revision": "rain-hint-v1",
+  "client_sha256": "45ca8465d729b5155e7800ba98d6ae0924a467062ac4ce95f1c115c00ac05ff7",
+  "client_bytes": 52316,
+  "envelope_sha256": "01f6d80fedcfb8dca720cd3de9dfa9b53d97ffac0e9105eef1bbf485aa1c6bce",
+  "envelope_bytes": 71494,
+  "qweather_cache_schema": 2,
+  "qweather_public_data": "derived hint and valid times only",
   "credentials_embedded": false,
   "snapshot_embedded": false,
-  "weather_transport": "direct public Open-Meteo Forecast API",
-  "meteoblue_automatic_fetching": "disabled on main, commit 6ad514adc6224c7a27b344a3f60c425966a6392c",
-  "weather_refresh_minutes": 60
+  "monthly_qweather_request_cap": 10000
 }

@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <!-- kindle-weather-package:v1 -->
 <!-- kindle-weather-source:open-meteo:v1 -->
+<!-- kindle-weather-additional-source:qweather-minute-cache:v1 -->
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -21,9 +22,10 @@
   <div id="controls">
     <div id="status" role="status"></div>
     <div id="toolbar"><button id="refresh">更新</button><button id="awake">保持显示</button></div>
-    <div id="credits"><a href="https://open-meteo.com/">Open-Meteo · CC BY 4.0</a></div>
+    <div id="credits"><a href="https://open-meteo.com/">Open-Meteo · CC BY 4.0</a> · <a href="https://www.qweather.com/">和风天气</a></div>
   </div>
   <script src="keep-awake.js"></script>
+  <script src="rain_cache.js"></script>
   <script src="provider.js"></script>
   <script src="client.js"></script>
 </body>

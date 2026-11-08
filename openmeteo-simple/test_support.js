@@ -8,4 +8,5 @@ function normalize(raw){return environment.OpenMeteoProvider.normalize(JSON.pars
 const raw=JSON.parse(JSON.stringify(actual)),full=normalize(raw),partialRaw=JSON.parse(JSON.stringify(raw));
 partialRaw.current.weather_code=null;partialRaw.daily.temperature_2m_min[0]=null;partialRaw.daily.temperature_2m_max[0]=null;partialRaw.daily.temperature_2m_min[1]=null;partialRaw.daily.precipitation_sum[2]=null;partialRaw.daily.weather_code[2]=null;
 const partial=normalize(partialRaw);
-module.exports={synthetic_test_only:true,now,raw,partialRaw,full,partial,normalize};
+const rain=JSON.parse(fs.readFileSync(path.join(__dirname,"fixtures/hepo-rain.synthetic.json"),"utf8"));
+module.exports={synthetic_test_only:true,now,raw,partialRaw,full,partial,normalize,rain};
