@@ -458,6 +458,9 @@
     var code=row && row.weatherCode;
     return data && data.weatherCodeSystem==="wmo-4677" && finite(code) && code%1===0 && WEATHER.hasOwnProperty(code) ? WEATHER[code] : "—";
   }
+  function temperatureRange(row) {
+    return row && (finite(row.temperatureMin)||finite(row.temperatureMax))?amount(row.temperatureMin)+"—"+amount(row.temperatureMax)+"°":"—";
+  }
   function text(x,y,message,size,bold,align) {
     ctx.fillStyle="#000";ctx.textAlign=align||"left";ctx.textBaseline="top";
     ctx.font=(bold?"bold ":"")+(size||20)+"px sans-serif";ctx.fillText(String(message),x,y);
@@ -467,8 +470,7 @@
     var date=targetDay(instant,offset),row=dayFor(cache,instant,offset);
     text(28,top,offset===1?"明天":"后天",36,true);
     text(28,top+49,date.month+"月"+date.day+"日",24);
-    var range=row && (finite(row.temperatureMin)||finite(row.temperatureMax))?amount(row.temperatureMin)+"—"+amount(row.temperatureMax)+"°":"—";
-    text(572,top+10,range,60,true,"right");
+    text(572,top+10,temperatureRange(row),60,true,"right");
     var condition=weatherText(cache,row);
     text(28,top+103,condition,32,true);
     text(572,top+107,"降水"+rainAmount(row && row.precipitation)+"毫米",29,false,"right");
@@ -479,9 +481,10 @@
     text(28,18,cache?cache.location.name:"揭西河婆",32,true);
     text(572,25,today.month+"月"+today.day+"日 周"+"日一二三四五六".charAt(today.weekday),23,false,"right");
     var valid=current?dayKey(current.time)===today.key?"今天 "+clock(current.time):clock(current.time,true):"";
-    text(300,83,"当前气温"+(valid?" · "+valid:""),26,false,"center");
-    text(300,120,amount(current && current.temperature)+"°C",126,true,"center");
-    if (!current) text(300,252,cache?"暂无当前气温":"等待天气数据",23,false,"center");
+    text(300,66,current?"当前气温"+(valid?" · "+valid:""):"等待天气数据",26,false,"center");
+    text(300,100,amount(current && current.temperature)+"°C",126,true,"center");
+    text(28,242,weatherText(cache,current),32,true);
+    text(572,244,"今天 "+temperatureRange(dayFor(cache,instant,0)),30,true,"right");
     rule(282);dayCard(instant,1,303);rule(458);dayCard(instant,2,479);rule(634);
     text(300,655,"数据取得 "+clock(cache?cache.fetchedAt:null,true),21,false,"center");
     fit();scheduleDisplay();
@@ -516,7 +519,7 @@
   }
   root.addEventListener("pagehide",stop,false);root.addEventListener("beforeunload",stop,false);root.onresize=fit;
   try{var saved=root.localStorage.getItem(STORAGE_KEY);if(saved)cache=validate(JSON.parse(saved));}catch(ignore){}
-  root.OpenMeteoSimple={validate:validate,clock:clock,dayKey:dayKey,targetDay:targetDay,dayFor:dayFor,currentAt:currentAt,weatherText:weatherText,nextReadAt:nextReadAt,nextMidnight:nextMidnight,getState:function(){var instant=now()/1000,current=currentAt(cache),tomorrow=dayFor(cache,instant,1),after=dayFor(cache,instant,2);return{source:cache?cache.source:null,hasData:!!cache,currentTime:current?current.time:null,currentTemperature:current?current.temperature:null,tomorrowTime:tomorrow?tomorrow.time:null,afterTomorrowTime:after?after.time:null,today:targetDay(instant,0).key,fetchedAt:cache?cache.fetchedAt:null,networkTimerActive:networkTimer!==null,displayTimerActive:displayTimer!==null};}};
+  root.OpenMeteoSimple={validate:validate,clock:clock,dayKey:dayKey,targetDay:targetDay,dayFor:dayFor,currentAt:currentAt,weatherText:weatherText,nextReadAt:nextReadAt,nextMidnight:nextMidnight,getState:function(){var instant=now()/1000,current=currentAt(cache),today=dayFor(cache,instant,0),tomorrow=dayFor(cache,instant,1),after=dayFor(cache,instant,2);return{source:cache?cache.source:null,hasData:!!cache,currentTime:current?current.time:null,currentTemperature:current?current.temperature:null,currentCondition:weatherText(cache,current),todayTime:today?today.time:null,todayRange:temperatureRange(today),tomorrowTime:tomorrow?tomorrow.time:null,afterTomorrowTime:after?after.time:null,today:targetDay(instant,0).key,fetchedAt:cache?cache.fetchedAt:null,networkTimerActive:networkTimer!==null,displayTimerActive:displayTimer!==null};}};
   render();refresh();
 }(this));
 
