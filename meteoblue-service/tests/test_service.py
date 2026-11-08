@@ -290,6 +290,44 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(cache["sixHourly"][1]["totalCloudCover"], 2)
         self.assertIsNone(cache["sixHourly"][-1]["temperature"])
 
+    def test_optional_weather_codes_keep_daily_family_valid_in_both_resolutions(self):
+        raw = fixture("basic")
+        valid = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 20, 21, 22, 23, 24, 25]
+        for section in ("data_6h", "data_day"):
+            raw[section]["pictocode"] = [valid[i % len(valid)] for i in range(len(raw[section]["time"]))]
+        package = s.normalize(raw, "basic", NOW, 4000)
+        for key, section in (("sixHourly", "data_6h"), ("daily", "data_day")):
+            self.assertEqual([row["weatherCode"] for row in package[key]], raw[section]["pictocode"])
+        state = s.load_state(self.state)
+        state["packages"]["basic"] = package
+        cache = s.public_cache(state, NOW)
+        self.assertEqual(cache["weatherCodeSystem"], "meteoblue-pictocode-1-25")
+        self.assertEqual(cache["schemaVersion"], 1)
+
+    def test_missing_weather_codes_are_optional_for_old_responses_and_cache(self):
+        raw = fixture("basic")
+        for section in ("data_6h", "data_day"):
+            del raw[section]["pictocode"]
+        package = s.normalize(raw, "basic", NOW, 4000)
+        self.assertTrue(all(row["weatherCode"] is None for row in package["sixHourly"] + package["daily"]))
+        # Already-persisted packages predate this optional field entirely.
+        for key in ("sixHourly", "daily"):
+            for row in package[key]: del row["weatherCode"]
+        state = s.load_state(self.state)
+        state["packages"]["basic"] = package
+        cache = s.public_cache(state, NOW)
+        self.assertTrue(all(row["weatherCode"] is None for row in cache["sixHourly"] + cache["daily"]))
+        self.assertEqual(cache["packages"]["basic"]["status"], "ready")
+
+    def test_unknown_or_malformed_codes_are_null_never_mapped_as_hourly_codes(self):
+        raw = fixture("basic")
+        invalid = [None, 0, 18, 19, 26, 35, 99, -1, "1", True, 1.0, 2.5]
+        raw["data_6h"]["pictocode"] = [invalid[i % len(invalid)] for i in range(len(raw["data_6h"]["time"]))]
+        raw["data_day"]["pictocode"] = [1]  # Misaligned optional vector must not shift day conditions.
+        package = s.normalize(raw, "basic", NOW, 4000)
+        self.assertTrue(all(row["weatherCode"] is None for row in package["sixHourly"] + package["daily"]))
+        self.assertIsNotNone(package["sixHourly"][1]["temperature"])
+
 
 if __name__ == "__main__":
     unittest.main()

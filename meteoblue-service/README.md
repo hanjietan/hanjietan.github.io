@@ -71,7 +71,17 @@ Each of `packages.basic` and `packages.clouds` independently preserves:
 
 `daily` has local-calendar-day timestamps and `temperatureMin`,
 `temperatureMax`, `temperatureMean`, `relativeHumidity`, `precipitation`,
-`totalCloudCover`, `windSpeed`, `windDirection`. Temperature and humidity are
+`totalCloudCover`, `windSpeed`, `windDirection`. Both `sixHourly` and `daily`
+add the optional `weatherCode` from Basic's existing `pictocode` response field;
+top-level `weatherCodeSystem` is `meteoblue-pictocode-1-25`. Valid integer codes
+are 1–17 and 20–25. Missing/unknown codes are `null` and do not invalidate an
+otherwise usable package. Old persisted packages remain compatible. This does
+not add or change any API request; codes arrive on the next normal Basic batch.
+Six-hour codes use the **daily** code family, not the hourly/3h 1–35 family.
+See [weather-code change notes](WEATHER_CODE_CHANGE.md) for the full mapping.
+Actual daily timestamp labels may be 06:00 Beijing time: match their local date,
+not equality with midnight or an assumed preceding-24h endpoint.
+Temperature and humidity are
 forecasts, not live station observations. Wind maximum is not mislabelled as a
 gust. Entirely unusable future data or malformed units/axes/fields do not replace
 a previous successful package. Partial missing values remain `null`. Old data

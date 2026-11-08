@@ -22,6 +22,9 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 SCHEMA = 1
 STEP = 21600
 EXPECTED_CREDITS = 4000
+WEATHER_CODE_SYSTEM = "meteoblue-pictocode-1-25"
+WEATHER_CODES = frozenset(range(1, 18)) | frozenset(range(20, 26))
+OPTIONAL_FIELDS = frozenset({"weatherCode"})
 BEIJING = timezone(timedelta(hours=8))
 LOCATION = {"id": "hepo", "name": "揭西河婆", "latitude": 23.4394,
             "longitude": 115.8305, "timezone": "Asia/Shanghai"}
@@ -31,14 +34,14 @@ UNITS = {"temperature": "C", "relativeHumidity": "%", "totalCloudCover": "%",
 SIX_FIELDS = {
     "basic": {"temperature": "temperature_instant", "relativeHumidity": "relativehumidity_instant",
               "windSpeed": "windspeed_mean", "windDirection": "winddirection_mean",
-              "precipitation": "precipitation"},
+              "precipitation": "precipitation", "weatherCode": "pictocode"},
     "clouds": {"totalCloudCover": "totalcloudcover_mean"},
 }
 DAY_FIELDS = {
     "basic": {"temperatureMin": "temperature_min", "temperatureMax": "temperature_max",
               "temperatureMean": "temperature_mean", "relativeHumidity": "relativehumidity_mean",
               "windSpeed": "windspeed_mean", "windDirection": "winddirection",
-              "precipitation": "precipitation"},
+              "precipitation": "precipitation", "weatherCode": "pictocode"},
     "clouds": {"totalCloudCover": "totalcloudcover_mean"},
 }
 
@@ -62,6 +65,8 @@ def epoch(value):
 
 
 def number(value, field):
+    if field == "weatherCode":
+        return value if type(value) is int and value in WEATHER_CODES else None
     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
         return None
     if field in ("relativeHumidity", "totalCloudCover") and not 0 <= value <= 100:
@@ -142,11 +147,17 @@ def rows(data, fields, interval, required):
     stamps = [epoch(value) for value in data["time"]]
     if any(b - a != interval for a, b in zip(stamps, stamps[1:])):
         raise ServiceError("unordered_or_wrong_interval_axis")
-    for field in fields.values():
-        if not isinstance(data.get(field), list) or len(data[field]) != len(stamps):
+    columns = {}
+    for name, field in fields.items():
+        values = data.get(field)
+        if not isinstance(values, list) or len(values) != len(stamps):
+            if name in OPTIONAL_FIELDS:
+                columns[name] = [None] * len(stamps)
+                continue
             raise ServiceError("missing_or_incomplete_forecast_field")
-    return [{"time": stamp, **{name: number(data[field][i], name)
-                              for name, field in fields.items()}} for i, stamp in enumerate(stamps)]
+        columns[name] = values
+    return [{"time": stamp, **{name: number(columns[name][i], name)
+                              for name in fields}} for i, stamp in enumerate(stamps)]
 
 
 def normalize(raw, family, fetched_at, credits):
@@ -161,7 +172,8 @@ def normalize(raw, family, fetched_at, credits):
     if samples[-1]["time"] <= fetched_at:
         raise ServiceError("forecast_horizon_exhausted")
     future = [row for row in samples if row["time"] > fetched_at]
-    if any(not any(row[name] is not None for row in future) for name in SIX_FIELDS[family]):
+    if any(not any(row[name] is not None for row in future)
+           for name in SIX_FIELDS[family] if name not in OPTIONAL_FIELDS):
         raise ServiceError("no_usable_future_forecast_values")
     daily = rows(raw.get("data_day"), DAY_FIELDS[family], 86400, False)
     metadata = raw.get("metadata", {})
@@ -268,6 +280,7 @@ def public_cache(state, generated_at):
                                                   ("reservedAt", "attemptedAt", "status", "error",
                                                    "accountedCredits", "conservativeCredits")}
     return {"schemaVersion": SCHEMA, "source": "meteoblue", "location": LOCATION,
+            "weatherCodeSystem": WEATHER_CODE_SYSTEM,
             "generatedAt": generated_at, "intervalSeconds": STEP, "units": UNITS,
             "attribution": {"name": "meteoblue", "url": "https://www.meteoblue.com/"},
             "packages": packages, "sixHourly": merged_rows(state["packages"], "sixHourly", SIX_FIELDS),
