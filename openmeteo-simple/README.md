@@ -1,6 +1,6 @@
 # Open-Meteo 大字天气版
 
-独立候选目录；不修改两份 Meteoblue 界面及其冻结包。当前界面仅显示揭西河婆的当前气温、明天/后天最低—最高温、WMO天气和日降水。来源署名为 Open-Meteo，实际数据 `source:'open-meteo'`，无其它气象源回退。
+已发布的独立程序目录；不修改两份 Meteoblue 界面及其冻结包。当前界面仅显示揭西河婆的当前气温、明天/后天最低—最高温、WMO天气和日降水。来源署名为 Open-Meteo，实际数据 `source:'open-meteo'`，无其它气象源回退。
 
 当前温度直接来自 API `current.temperature_2m`，标出 `current.time` 的北京时间；它是当前模型条件，不是气象站实测。日预报按 UTC+8 的完整年月日选择，日天气码使用 WMO 4677，不能套用 Meteoblue 日码。降水是当地日累计，包括雨、阵雨和雪的水当量。缺测显示横线，零降水才显示 0。
 
@@ -19,4 +19,4 @@ node openmeteo-simple/headless_test.js
 
 需要 Python 3、Node 22+、已安装 Chrome。`test_support.js` 将fixtures/ 中保存的公开真实 API 快照送入真正 provider 的纯函数，再构造明确的离线测试变体；不发 HTTP、不包含 key。headless 在独立隐藏 profile/about:blank 中模拟 XHR 并冻结测试时间；截图标明仅本地验证，不冒充最新天气。覆盖两屏幕尺寸、全部支持WMO码、1234.56毫米降水、负温、缺测和读取失败，天气/雨量间距按实际字体和缩放后像素至少12px。
 
-真实网络全链路由根任务统一安排，避免重复请求。程序未内嵌任何快照或模拟数据；`bundle-manifest.json` 记录最终程序及源文件SHA。发布、实际Kindle验收和回滚由根任务负责。
+2026-11-08已发布至既有入口（提交 682b546015467078c290e07c5d80d4dc3169dd54）。原035354启动器→GitHub程序→Open-Meteo的完整真实链路通过，恰好两次GET；当前温度、明后天天气码/温度/雨量均已核对，无旧天气缓存请求。真实图与报告保存在本地 runtime/openmeteo-chain-live-final-20261108/；Kindle新界面待用户重新打开确认。程序未内嵌任何快照或模拟数据；`bundle-manifest.json` 记录最终程序及源文件SHA。发布、实际Kindle验收和回滚由根任务负责。
