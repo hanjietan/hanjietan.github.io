@@ -3,7 +3,7 @@
 `provider.js` is an ES5 XMLHttpRequest adapter for one place: 揭西河婆, WGS84
 23.4394 N, 115.8305 E, Asia/Shanghai. No API key, backend server, Meteoblue call,
 provider fallback or cloud weather cache is needed. The frontend owns its
-six-hour refresh schedule and optional persistent cache.
+30-minute forecast refresh schedule and separate minute clock and optional persistent cache.
 
 ## Interface
 

@@ -7,7 +7,7 @@
 - `program-manifest.json`：当前已发布客户端与封套的来源、字节数和 SHA-256。
 - `remote-update/make_openmeteo_transport.py`：旧启动书兼容封套的构建工具；`remote-update/OPENMETEO-TRANSPORT.md` 说明兼容机制。
 
-天气数据由 Kindle 直接向公开的 Open-Meteo Forecast API 读取，不需要密钥、付费 API 或 GitHub Actions 后台更新。正常按北京时间 00:35、06:35、12:35、18:35 更新，进入页面及点击「更新」也会触发读取；失败保留此前的成功数据与原时间。来源署名与许可按客户端显示。
+天气数据由 Kindle 直接向公开的 Open-Meteo Forecast API 读取，不需要密钥、付费 API 或 GitHub Actions 后台更新。正常每30分钟自动更新（北京时间每小时 :05、:35），进入页面及点击「更新」也会触发读取；失败保留此前的成功数据与原时间。界面另有北京时间时钟，每分钟只更新本地显示、不调用天气 API。显示天气有效时刻与钟表时间是两回事。来源署名与许可按客户端显示。
 
 ## 冻结的 Meteoblue 备用版
 

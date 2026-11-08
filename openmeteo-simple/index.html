@@ -9,16 +9,18 @@
   <style>
     html,body{margin:0;padding:0;background:#fff;color:#000;font-family:sans-serif;text-align:center}
     canvas{display:block;margin:0 auto;background:#fff}
+    #local-clock{font-size:38px;font-weight:bold;line-height:48px;letter-spacing:1px;white-space:nowrap}
     #status{display:none;font-size:18px;line-height:1.25;padding:3px 8px}
     #toolbar{padding:3px 8px;white-space:nowrap}
     button{box-sizing:border-box;width:47%;min-height:58px;margin:0 1%;padding:8px 2px;border:2px solid #000;border-radius:0;background:#fff;color:#000;font-size:26px;font-weight:bold}
     #credits{font-size:13px;line-height:18px}a{color:#000}
-    @media(max-height:600px){button{min-height:48px;padding:5px 2px;font-size:23px}#status{font-size:15px}#credits{font-size:11px;line-height:15px}}
+    @media(max-height:600px){button{min-height:48px;padding:5px 2px;font-size:23px}#status{font-size:15px}#local-clock{font-size:30px;line-height:38px}#credits{font-size:11px;line-height:15px}}
   </style>
 </head>
 <body>
   <canvas id="screen" width="600" height="716">等待天气数据</canvas>
   <div id="controls">
+    <div id="local-clock" role="timer" aria-label="北京时间">北京时间 --:--</div>
     <div id="status" role="status"></div>
     <div id="toolbar"><button id="refresh">更新</button><button id="awake">保持显示</button></div>
     <div id="credits"><a href="https://open-meteo.com/">Open-Meteo · CC BY 4.0</a></div>
