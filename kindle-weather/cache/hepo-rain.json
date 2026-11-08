@@ -9,9 +9,13 @@
     "datum": "GCJ02",
     "timezone": "Asia/Shanghai"
   },
-  "fetchedAt": 1794138440,
-  "updatedAt": 1794137700,
-  "validUntil": 1794138600,
-  "knownHorizonEnd": 1794144900,
-  "alert": null
+  "fetchedAt": 1794138959,
+  "updatedAt": 1794138300,
+  "validUntil": 1794139559,
+  "knownHorizonEnd": 1794145500,
+  "alert": {
+    "kind": "rain",
+    "forecastTime": 1794140400,
+    "timing": "approximate"
+  }
 }
