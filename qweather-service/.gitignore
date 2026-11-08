@@ -1,0 +1,7 @@
+state/.fetch.lock
+state/*.tmp-*
+private/
+*.private.json
+*.pem
+*.key
+*.token
