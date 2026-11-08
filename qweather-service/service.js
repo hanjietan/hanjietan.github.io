@@ -106,7 +106,7 @@ function loadState(file) {
       throw new SafeError('monthly_count_regressed_stop_without_fetch');
     }
   }
-  if (state.lastSuccess && (state.lastSuccess.schemaVersion !== 2 || state.lastSuccess.source !== 'qweather' ||
+  if (state.lastSuccess && (![2, 3].includes(state.lastSuccess.schemaVersion) || state.lastSuccess.source !== 'qweather' ||
       'raw' in state.lastSuccess || 'minutely' in state.lastSuccess || 'summary' in state.lastSuccess || 'refer' in state.lastSuccess)) {
     throw new SafeError('unexpected_cache_contract_stop_without_fetch');
   }
@@ -145,17 +145,15 @@ function normalizeRaw(raw, now, previous = null) {
   if (previous && issued < previous.updatedAt) throw new SafeError('provider_time_regressed');
   const useful = normalized.bins.some(item => item.time >= now && Number.isFinite(item.precipitation));
   if (!useful) throw new SafeError('no_usable_future_precipitation');
-  const hint = KindleRainHint.analyze(normalized, now, {maxAgeSeconds: MAX_SOURCE_AGE});
-  const horizonEnd = normalized.bins[normalized.bins.length - 1].time + SLOT_SECONDS;
-  const validUntil = Math.min(hint.validUntil || horizonEnd, issued + MAX_SOURCE_AGE,
+  const outlook = KindleRainHint.deriveOutlook(normalized, now);
+  const horizonEnd = outlook.periods[outlook.periods.length - 1].to;
+  const validUntil = Math.min(issued + MAX_SOURCE_AGE,
     now + MAX_CACHE_AGE, horizonEnd);
   if (now >= validUntil) throw new SafeError('stale_provider_data');
-  const alert = hint.visible ? {kind: hint.type, forecastTime: Math.floor(hint.forecastTime),
-    timing: hint.minutes === null ? 'nearby' : 'approximate'} : null;
-  // Publish only the small derived display product. No provider text, amounts or arrays.
-  return {schemaVersion: 2, source: 'qweather', location: LOCATION, fetchedAt: now,
+  // Publish compressed qualitative display periods, never raw rows or amounts.
+  return {schemaVersion: 3, source: 'qweather', location: LOCATION, fetchedAt: now,
     updatedAt: Math.floor(issued), validUntil: Math.floor(validUntil),
-    knownHorizonEnd: Math.floor(horizonEnd), alert};
+    knownHorizonEnd: Math.floor(horizonEnd), outlook};
 }
 function requestOnce(credentials, token) {
   const url = credentials.apiHost + '/v7/minutely/5m?location=115.84%2C23.44&lang=zh';

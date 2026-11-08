@@ -40,13 +40,13 @@ The transport has a 20-second **absolute** deadline, bounded gzip/JSON decoding,
 no redirects and no automatic retries. Neither URLs, headers, keys, tokens,
 raw bodies nor native exception text are logged. Console output is only fixed
 codes and quota/slot outcomes. The provider response exists only in request
-memory. Only a small derived rain/snow hint is persisted or published; provider
-text, precipitation amounts, time-series arrays and references are not cached.
+memory. Only compressed, qualitative display periods are persisted or published; provider
+text, precipitation amounts, raw time-series rows and references are not cached.
 
 ## Durable quota rules
 
 State: `qweather-service/state/hepo.json`. Do not delete or reset it to retry.
-Its `lastSuccess` contains only the same schema2 derived product as the public
+Its `lastSuccess` contains only the same schema3 derived product (schema2 is accepted only to migrate the existing ledger) as the public
 cache, never a raw response, summary, minutely series, amounts or references.
 
 1. Reserve the current epoch five-minute slot; increment that Beijing-calendar
@@ -88,34 +88,49 @@ projects; zero cash balance is not a provider spending limit. See
 Path: `kindle-weather/cache/hepo-rain.json`.
 
 ```text
-schemaVersion: 2
+schemaVersion: 3
 source: "qweather"
 location: {id:"hepo", name:"揭西河婆", latitude:23.44, longitude:115.84,
            datum:"GCJ02", timezone:"Asia/Shanghai"}
 fetchedAt: actual successful retrieval time, Unix UTC seconds
 updatedAt: provider source-issue time, Unix UTC seconds
-validUntil: hint/product expiry time, Unix UTC seconds
-knownHorizonEnd: last known forecast label + 300 seconds
-alert: null OR {kind:"rain"|"snow", forecastTime:Unix UTC seconds,
-                timing:"approximate"|"nearby"}
+validUntil: product expiry time, Unix UTC seconds
+knownHorizonEnd: min(last forecast label+300, fetchedAt+7200)
+outlook: {periods:[{from:Unix UTC seconds, to:Unix UTC seconds,
+                   kind:"dry"|"rain"|"snow"|"unknown",
+                   strength:null|"light"|"moderate"|"heavy"|"violent"}]}
 ```
 
-The server calls the controlled helper's `normalize(raw, fetchedAt)` and
-`analyze(normalized, now, {maxAgeSeconds:1800})` in memory, then clamps the
-derived product to `min(fetchedAt+600, updatedAt+1800, knownHorizonEnd)`.
-The exported constants are `MAX_CACHE_AGE=600` and `MAX_SOURCE_AGE=1800`.
-That helper knows native amounts are
-five-minute accumulated mm, not mm/hour, and keeps missing values unknown.
-It downgrades timing to `nearby` when prior coverage has gaps or unknown data;
-it does not infer a precise onset through missing data. A visible positive
-forecast becomes the minimal `alert` object; otherwise `alert` is `null`.
-Null does not assert that no rain will occur. The browser can recompute an
-approximate countdown from `forecastTime`, then say nearby when that time has
-passed, only until `validUntil`. No key, Host, token, request URL, raw code,
-summary, minutely arrays, precipitation amounts, refer or account metadata are
-published or placed in `lastSuccess`. Keep QWeather attribution separate from
-Open-Meteo's licence. The output is a derived display product rather than a
-redistribution of the provider's raw time series.
+The controlled helper normalizes raw data in memory, then `deriveOutlook`
+clips away historical labels and compresses adjacent equal qualitative periods.
+Periods are left-inclusive/right-exclusive; gaps, missing values or invalid
+precipitation types stay explicit `unknown`. Zero is dry only with a known rain
+or snow type. The provider documents forecast labels but not exact bucket
+alignment; using each label and its following five minutes is this product's
+approximation, so onset/stop messages use approximate five-minute countdowns.
+No rainfall amounts, provider text, raw rows, account Host or credentials enter
+this product or the ledger. Retained schema2 data are migrated by the next
+successful fetch without resetting monthly counts or old cache times.
+
+The received product is clamped to
+`min(fetchedAt+600, updatedAt+1800, knownHorizonEnd)`.
+The browser derives a no-rain duration only from continuous dry coverage from
+its actual current clock. A source issue twelve minutes behind now has less
+than two hours of remaining coverage: it cannot promise another full two hours.
+Arrival timing requires uninterrupted dry coverage before the next wet period;
+stop timing requires a known dry period after the entire current wet spell.
+Unknown/error/expired coverage displays a short updating state, never no-rain.
+
+Rain strength uses each **five-minute accumulated mm times 12** as a short-period
+equivalent average mm/hour: below 2.5 light, below 10 moderate, below 50 heavy,
+otherwise violent. These approximate bands use the [WMO rain-intensity guide,
+Annex I.14-7, PDF page 323](https://www.weather.gov/media/epz/mesonet/CWOP-WMO8.pdf#page=323),
+whose reference measurement period is three minutes. This is a qualitative
+forecast adaptation, not an observed hourly rate or China's 12/24-hour rain
+accumulation grade. Drizzle is a drop-type distinction and cannot be inferred
+from a small amount; snow retains no rain-strength label. QWeather supplies
+only rain/snow type here. Keep QWeather attribution separate from Open-Meteo's
+licence; the output is a derived display product rather than raw redistribution.
 
 Only usable success data replace the public file. HTTP/API errors, malformed
 data, all-unknown future amounts, source timestamps 30 minutes old or older,

@@ -111,7 +111,7 @@ test('HTTP and provider API auth/billing/rate statuses persistently pause future
     }
   }
 });
-test('schema2 only publishes a derived hint; unknown prior precipitation makes timing nearby', async t => {
+test('schema3 publishes qualitative periods and preserves unknown coverage', async t => {
   const f = files(t); const inputRaw = raw();
   inputRaw.minutely[1].precip = null; inputRaw.minutely[2].precip = '';
   inputRaw.minutely[5].precip = 'NaN'; inputRaw.minutely[6].type = 'unknown';
@@ -119,9 +119,15 @@ test('schema2 only publishes a derived hint; unknown prior precipitation makes t
   assert.equal(result.status, 'success');
   const cache = JSON.parse(fs.readFileSync(f.cache, 'utf8'));
   assert.deepEqual(cache.location, s.LOCATION); assert.equal(cache.location.datum, 'GCJ02');
-  assert.equal(cache.schemaVersion, 2); assert.equal(cache.source, 'qweather'); assert.equal(cache.fetchedAt, NOW);
+  assert.equal(cache.schemaVersion, 3); assert.equal(cache.source, 'qweather'); assert.equal(cache.fetchedAt, NOW);
   assert.equal(cache.updatedAt, NOW); assert.equal(cache.validUntil, NOW + 600);
-  assert.deepEqual(cache.alert, {kind: 'rain', forecastTime: NOW + 900, timing: 'nearby'});
+  assert.deepEqual(cache.outlook.periods, [
+    {from: NOW, to: NOW + 300, kind: 'dry', strength: null},
+    {from: NOW + 300, to: NOW + 900, kind: 'unknown', strength: null},
+    {from: NOW + 900, to: NOW + 1500, kind: 'rain', strength: 'light'},
+    {from: NOW + 1500, to: NOW + 2100, kind: 'unknown', strength: null},
+    {from: NOW + 2100, to: NOW + 7200, kind: 'dry', strength: null}
+  ]);
   for (const name of ['raw', 'summary', 'minutely', 'precip', 'precipitation', 'refer', 'extraPrivateField', 'request_url']) {
     assert.equal(Object.hasOwn(cache, name), false);
     assert.equal(Object.hasOwn(s.loadState(f.state).lastSuccess, name), false);
@@ -167,7 +173,7 @@ test('a failed later fetch never renews the prior derived validUntil', async t =
   assert.equal(fs.readFileSync(f.cache, 'utf8'), before);
   assert.equal(s.loadState(f.state).lastSuccess.validUntil, NOW + 600);
 });
-test('raw summary, amounts, references, secrets and arrays never enter the derived public product', () => {
+test('raw summary, amounts, references, secrets and raw rows never enter the derived public product', () => {
   const token = s.createJwt(credentials, NOW);
   const response = raw(); response.summary = token;
   response.refer.sources = ['https://' + input.apiHost + '/?key=' + token];
@@ -175,9 +181,62 @@ test('raw summary, amounts, references, secrets and arrays never enter the deriv
   const text = JSON.stringify(envelope);
   for (const forbidden of [token, input.apiHost, input.privateKeyPem, 'summary', 'raw', 'minutely',
     'refer', 'precipitation', '0.15']) assert.equal(text.includes(forbidden), false);
-  assert.deepEqual(envelope.alert, {kind: 'rain', forecastTime: NOW + 900, timing: 'approximate'});
+  assert.deepEqual(envelope.outlook.periods, [
+    {from: NOW, to: NOW + 900, kind: 'dry', strength: null},
+    {from: NOW + 900, to: NOW + 1500, kind: 'rain', strength: 'light'},
+    {from: NOW + 1500, to: NOW + 7200, kind: 'dry', strength: null}
+  ]);
   const gap = raw(); gap.minutely.splice(1, 1);
-  assert.equal(s.normalizeRaw(gap, NOW).alert.timing, 'nearby');
+  assert.deepEqual(s.normalizeRaw(gap, NOW).outlook.periods[1],
+    {from: NOW + 300, to: NOW + 600, kind: 'unknown', strength: null});
+});
+
+test('dry outlook is bounded by the real remaining forecast horizon, not another two hours', () => {
+  const response = raw(NOW - 720); response.minutely.forEach(row => { row.precip = '0'; });
+  const envelope = s.normalizeRaw(response, NOW);
+  assert.equal(envelope.knownHorizonEnd, NOW + 6480);
+  assert.deepEqual(envelope.outlook.periods, [{from: NOW, to: NOW + 6480, kind: 'dry', strength: null}]);
+  assert.equal(envelope.validUntil, NOW + 600);
+});
+
+test('5-minute accumulations convert to approximate short-period rain-intensity bands only', () => {
+  const values = ['0', '0.20', '0.21', '0.83', '0.84', '4.16', '4.17'];
+  const response = raw();
+  response.minutely = values.map((precip, i) => ({fxTime: iso(NOW + i * 300), precip, type: 'rain'}));
+  const periods = s.normalizeRaw(response, NOW).outlook.periods;
+  assert.deepEqual(periods.map(p => [p.kind, p.strength]), [
+    ['dry', null], ['rain', 'light'], ['rain', 'moderate'], ['rain', 'heavy'], ['rain', 'violent']
+  ]);
+  assert.equal(periods[2].to - periods[2].from, 600);
+  assert.equal(periods[3].to - periods[3].from, 600);
+  response.minutely.forEach(row => { row.type = 'snow'; });
+  assert.ok(s.normalizeRaw(response, NOW).outlook.periods.every(p => p.strength === null));
+});
+
+test('historical rain is removed, multiple wet spells remain separate, unknown type is not dry', () => {
+  const response = raw(NOW - 300);
+  response.minutely.forEach(row => { row.precip = '0'; });
+  response.minutely[0].precip = '2'; // Entirely before now: cannot become current rain.
+  response.minutely[3].precip = '0.1'; response.minutely[5].precip = '1';
+  response.minutely[8].type = 'invalid';
+  const envelope = s.normalizeRaw(response, NOW);
+  assert.equal(envelope.outlook.periods[0].kind, 'dry');
+  assert.equal(envelope.outlook.periods.filter(p => p.kind === 'rain').length, 2);
+  assert.ok(envelope.outlook.periods.some(p => p.kind === 'unknown'));
+  assert.ok(envelope.outlook.periods.every((p, i, ps) => p.from >= NOW && p.to > p.from && (!i || ps[i - 1].to === p.from)));
+});
+
+test('existing schema2 cache migrates on the next fetch without resetting any quota counts', async t => {
+  const f = files(t); await slot(f, 'original', NOW);
+  const state = s.loadState(f.state);
+  state.lastSuccess = {...state.lastSuccess, schemaVersion: 2, alert: null};
+  delete state.lastSuccess.outlook;
+  s.atomicJson(f.state, state); s.atomicJson(f.cache, state.lastSuccess);
+  assert.equal(s.loadState(f.state).monthlyCounts[s.monthOf(NOW)], 1);
+  await slot(f, 'migrated', NOW + 300);
+  assert.equal(s.loadState(f.state).monthlyCounts[s.monthOf(NOW)], 2);
+  assert.equal(s.loadState(f.state).lastSuccess.schemaVersion, 3);
+  assert.equal(JSON.parse(fs.readFileSync(f.cache, 'utf8')).schemaVersion, 3);
 });
 test('missing or malformed credential stops CLI before creating a reservation or any lock', async t => {
   const f = files(t); const logs = []; const output = {log: text => logs.push(text), error: text => logs.push(text)};

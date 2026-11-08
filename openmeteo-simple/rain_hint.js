@@ -104,5 +104,41 @@
     var text=uncertain?"近期可能有"+kind:delta===0?"短时可能有"+kind:delta<=300?"5分钟内可能有"+kind:"约"+minutes+"分钟后可能有"+kind;
     return {visible:true,text:text,reason:uncertain?"unknown_prior_coverage":"positive_forecast",type:selected.type,minutes:uncertain?null:minutes,coverageUnknown:uncertain,forecastTime:selected.time,precipitation:selected.precipitation,updatedAt:data.updatedAt,fetchedAt:data.fetchedAt,validUntil:until,nextCheckAt:Math.min(instant+60,until,selected.time+1),officialSummary:data.summary||""};
   }
-  root.KindleRainHint={normalize:normalize,analyze:analyze,parseTime:parseTime,sanitizeSummary:summary};
+  // Qualitative display periods, not provider rows or amounts. A 5-minute
+  // accumulated amount x12 gives an equivalent short-period mm/hour rate.
+  // WMO short-duration rain-intensity bands are approximated here; these are
+  // not China's 12/24-hour accumulated rainfall classes or drizzle diagnosis.
+  function rainStrength(amount) {
+    if(!finite(amount)||amount<=0)return null;
+    var rate=amount*12;
+    return rate<2.5?"light":rate<10?"moderate":rate<50?"heavy":"violent";
+  }
+  function deriveOutlook(data,instant) {
+    if(!data||data.schemaVersion!==1||!epoch(instant)||!array(data.bins)||!data.bins.length)throw new Error("invalid_outlook_data");
+    var last=data.bins[data.bins.length-1],end=Math.min(last.time+300,instant+7200),periods=[],cursor=instant;
+    if(!epoch(end)||end<=instant)throw new Error("exhausted_outlook");
+    function append(from,to,kind,strength) {
+      if(to<=from)return;
+      var previous=periods.length?periods[periods.length-1]:null;
+      if(previous&&previous.to===from&&previous.kind===kind&&previous.strength===strength)previous.to=to;
+      else periods.push({from:from,to:to,kind:kind,strength:strength});
+    }
+    for(var i=0;i<data.bins.length&&cursor<end;i++){
+      var bin=data.bins[i],from=Math.max(instant,bin.time),to=Math.min(bin.time+300,end);
+      if(i+1<data.bins.length)to=Math.min(to,data.bins[i+1].time);
+      if(to<=cursor)continue;
+      if(from>cursor){append(cursor,Math.min(from,end),"unknown",null);cursor=Math.min(from,end);}
+      if(cursor>=end)break;
+      from=Math.max(from,cursor);
+      var kind="unknown",strength=null;
+      if(finite(bin.precipitation)&&bin.precipitation===0&&(bin.type==="rain"||bin.type==="snow"))kind="dry";
+      else if(finite(bin.precipitation)&&bin.precipitation>0&&(bin.type==="rain"||bin.type==="snow")){
+        kind=bin.type;strength=kind==="rain"?rainStrength(bin.precipitation):null;
+      }
+      append(from,to,kind,strength);cursor=to;
+    }
+    if(cursor<end)append(cursor,end,"unknown",null);
+    return {periods:periods};
+  }
+  root.KindleRainHint={normalize:normalize,analyze:analyze,deriveOutlook:deriveOutlook,rainStrength:rainStrength,parseTime:parseTime,sanitizeSummary:summary};
 }(typeof window!=="undefined"?window:this));
