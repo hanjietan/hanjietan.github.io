@@ -1,13 +1,11 @@
-# Kindle 天气屏
+# Kindle 大字天气屏
 
-单地点揭西河婆（23.4394,115.8305，北京时间）的 Meteoblue 天气屏，显示未来72小时温度、湿度、总云量、6小时累计降水、平均风速和风向。
+当前入口 weather.html 使用 meteoblue-simple/：大字气温预报、明天及后天最低—最高温、晴阴天气文字和日降水。风向、风速、湿度与曲线不显示。沿用现有《天气屏》入口，重新打开即更新，无需 USB；已装启动书的离线回退仍为完整图表版。
 
-`weather.html` 是固定启动程序；`cache/hepo.json` 是云端天气缓存。Kindle自行联网，不需要电脑常开。程序重新打开入口时更新；缓存自动读取对齐北京时间00:35、06:35、12:35、18:35，首次及手动更新立即读取缓存。
+气温取距离当前最近的原始6小时预报点，并明确标注有效时刻。明后天按北京时间日期匹配日数据；天气文字使用 Meteoblue 日/6h pictocode。新增可选天气码字段在下一轮正常 Basic 取数后自动进入缓存，旧缓存缺码时显示“天气暂无”，不推测晴阴。
 
-main分支的 `.github/workflows/kindle-meteoblue.yml` 计划北京时间00:17、06:17、12:17、18:17运行，checkout本分支执行 `meteoblue-service/`：Basic每日最多四次，Clouds每日最多一次。两包保留各自的实际取得/模型时间；Actions可能延迟，页面不伪造新时间。
+现有取数安排保持不变：Basic每日最多四次，Clouds每日最多一次。main 的 .github/workflows/kindle-meteoblue.yml 计划北京时间00:17、06:17、12:17、18:17运行。客户端读缓存对齐00:35、06:35、12:35、18:35，首次及手动“更新”立即读缓存。改版不额外调用 Meteoblue。密钥仅保存在 Actions Secret，客户端与公开缓存不含密钥。
 
-API key只在 Actions Secret `METEOBLUE_API_KEY`，不会进入客户端、天气JSON或启动书。重复运行受持久时段账本限制；错误保留旧成功包，缺测显示未知，实际单包计费异常时暂停。按标准计费正常全年预算730万credits，免费试用额度有效一年。
+完整图表版已冻结在 codex/frozen-weather-full-20261108-032139z（commit b34b67ea5de95b1b82961fec897334baacf0dc48），meteoblue.html 亦保留完整图程序。回滚仅恢复 weather.html；不重置活动分支或覆盖持久配额账本/生产缓存。
 
-`meteoblue-client/` 为自包含ES5客户端；`meteoblue-service/` 为标准库Python服务与测试。当前客户端与新《天气屏》启动器都只使用Meteoblue缓存，无其他天气源回退。NoSleep MIT许可内嵌程序，Meteoblue来源链接保留。
-
-首轮云端取数及真实缓存渲染成功；原厂Kindle已拔掉USB验证新书正常。后续普通程序更新替换同一路径即可，日常天气数据自动更新。
+新程序SHA256：f329131b5d09937d0ef65ce7373a5d3441de6a4ef18eecee4fec58c991571248，39,492字节。52种模拟布局、ES5/日期/缺测/调度/保持显示检查，以及已装原启动器的在线加载与回退执行检查通过。真实数据与Kindle新界面验收单独记录；测试天气不发布。Meteoblue署名与NoSleep MIT许可保留。
