@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "location": {
+    "id": "hepo",
+    "name": "揭西河婆",
+    "latitude": 23.4394,
+    "longitude": 115.8305,
+    "timezone": "Asia/Shanghai"
+  },
+  "ledger": {
+    "2026-11-08/basic/1": {
+      "runId": "42440722492-1",
+      "family": "basic",
+      "reservedAt": 1794106709,
+      "attemptedAt": null,
+      "status": "reserved",
+      "accountedCredits": null,
+      "conservativeCredits": 4000
+    },
+    "2026-11-08/clouds/daily": {
+      "runId": "42440722492-1",
+      "family": "clouds",
+      "reservedAt": 1794106709,
+      "attemptedAt": null,
+      "status": "reserved",
+      "accountedCredits": null,
+      "conservativeCredits": 4000
+    }
+  },
+  "packages": {},
+  "accounting": {
+    "reportedCredits": 0,
+    "conservativeCredits": 8000,
+    "unknownCreditRequests": 2
+  }
+}
