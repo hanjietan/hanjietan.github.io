@@ -1,12 +1,12 @@
 {
-  "bytes": 45383,
-  "base64_bytes": 60512,
-  "sha256": "1ec93f9836d695407e6c4a7ee68cfaec5825403e83c57109141cfdfbc665de83",
+  "bytes": 44064,
+  "base64_bytes": 58752,
+  "sha256": "8351f864a9acb85cac08b81ab951680f0192c66e110bf21d79156a4c2c99a0e9",
   "source_sha256": {
-    "index.html": "9e13959460e2de4cea96f99e6b3c0cd409645b40d2fad442780890f1524ea106",
+    "index.html": "5da0a5f2bf1b1c7267b5039742606e94488e7cce1c9d3a4a44622112d20db72c",
     "keep-awake.js": "a9f6b38de217c0ff86a0ac47c072d15871d80ddf7a5e38e6eb2121795c9d0fda",
     "provider.js": "370a76ea82917070b3bc5dbb9689740335b4b894b05b5f4c93a39e2d758da1a1",
-    "client.js": "472c86b5f4648e1e487df846edbe1cd15c90412995ac343d26f4c99c3c193cac"
+    "client.js": "a7c2c2d87229600e90bbf71e810a2755cdf9b456ff4aba7c847dc30b615d9e1f"
   },
   "source": "open-meteo",
   "runtime_transport": "direct public Open-Meteo Forecast API",

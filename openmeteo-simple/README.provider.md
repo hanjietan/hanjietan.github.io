@@ -3,7 +3,7 @@
 `provider.js` is an ES5 XMLHttpRequest adapter for one place: 揭西河婆, WGS84
 23.4394 N, 115.8305 E, Asia/Shanghai. No API key, backend server, Meteoblue call,
 provider fallback or cloud weather cache is needed. The frontend owns its
-30-minute forecast refresh schedule and separate minute clock and optional persistent cache.
+hourly forecast refresh schedule and optional persistent cache.
 
 ## Interface
 
@@ -62,9 +62,10 @@ Current conditions are **model-derived 15-minute conditions**, not a direct
 weather-station observation. In China, the service interpolates hourly data
 for this time resolution. The returned `current.time` is the genuine valid
 instant, while `current.interval` specifies the backward accumulation window
-for current precipitation (900 seconds in the validated response). A six-hour
-screen/network schedule does not create six-hourly fresh current conditions
-between requests: always retain/display the real valid and retrieval times.
+for current precipitation (900 seconds in the validated response). An hourly
+screen/network schedule does not create real-time station observations.
+Retain true valid/retrieval timestamps internally, even though the simplified
+screen intentionally omits timestamps.
 No station accuracy or minute-scale rain-nowcast accuracy is claimed.
 See the [official forecast/current documentation](https://open-meteo.com/en/docs).
 
@@ -72,8 +73,8 @@ Under the currently published [Free API terms](https://open-meteo.com/en/terms),
 private home automation is non-commercial use; the limits are fewer than 10,000
 calls/day, 5,000/hour and 600/minute. The [pricing page](https://open-meteo.com/en/pricing)
 also lists a 300,000/month free allowance and confirms no API key is needed for
-the public endpoint. A normal single-place six-hour schedule is four requests
-per day. This is a rate-limited non-commercial service rather than an announced
+the public endpoint. A normal single-place hourly schedule is 24 requests
+per day, plus manual or initial page-load requests. This is a rate-limited non-commercial service rather than an announced
 one-year credit trial; future availability and terms are not guaranteed.
 Data require [CC BY 4.0 attribution](https://open-meteo.com/en/licence). Keep the
 visible Open-Meteo source link. No paid account or payment was created.

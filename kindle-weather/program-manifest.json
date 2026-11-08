@@ -1,17 +1,15 @@
 {
   "actual_source": "open-meteo",
-  "ui_revision": "today-summary-clock-30min-v1",
-  "client_bytes": 45383,
-  "client_sha256": "1ec93f9836d695407e6c4a7ee68cfaec5825403e83c57109141cfdfbc665de83",
-  "envelope_bytes": 61944,
-  "envelope_sha256": "63c75bb0e12af8c2e097dd25e4d1653998127b9b79850fd7e0e3a590a04675bb",
+  "ui_revision": "today-summary-hourly-no-clock-v1",
+  "client_bytes": 44064,
+  "client_sha256": "8351f864a9acb85cac08b81ab951680f0192c66e110bf21d79156a4c2c99a0e9",
+  "envelope_bytes": 60184,
+  "envelope_sha256": "eeef4e7032e4288ba76ef2666388a990ba3fa3c513dcfd179d260ae540abd046",
   "transportCompatibility": "legacy-installed-book",
   "legacyMarkerMeaning": "outer transport only; actual decoded client source is open-meteo",
   "credentials_embedded": false,
   "snapshot_embedded": false,
   "weather_transport": "direct public Open-Meteo Forecast API",
   "meteoblue_automatic_fetching": "disabled on main, commit 6ad514adc6224c7a27b344a3f60c425966a6392c",
-  "weather_refresh_minutes": 30,
-  "clock_refresh_minutes": 1,
-  "clock_uses_weather_api": false
+  "weather_refresh_minutes": 60
 }
