@@ -1,92 +1,14 @@
-# Put this workflow on the DEFAULT branch main only after secret setup is approved.
-# Source/state/public data live on codex/kindle-weather. No credentials in that branch.
-name: Kindle QWeather minute cache
+name: Kindle rain workflow archived
 
 on:
-  schedule:
-    - cron: '2,7,12,17,22,27,32,37,42,47,52,57 * * * *'
   workflow_dispatch:
 
 permissions:
-  contents: write
-
-concurrency:
-  group: kindle-qweather-hepo
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  cache:
+  notice:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    env:
-      RUN_TOKEN: '${{ github.run_id }}-${{ github.run_attempt }}'
-      NODE_DEBUG: ''
     steps:
-      - name: Check out the weather service and durable ledger
-        uses: actions/checkout@v4
-        with:
-          ref: codex/kindle-weather
-          fetch-depth: 1
+      - run: echo 'Rain schedule moved to kindle-rain-refresh.yml. This archived workflow makes no weather request.'
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Run offline service checks
-        run: node --test qweather-service/test_service.js
-
-      - name: Require the approved credential secret
-        env:
-          QWEATHER_CREDENTIALS: '${{ secrets.QWEATHER_CREDENTIALS }}'
-        run: |
-          if [ -z "${QWEATHER_CREDENTIALS:-}" ]; then
-            echo '::error::Configure the approved QWEATHER_CREDENTIALS repository secret first.'
-            exit 1
-          fi
-
-      - name: Reserve and push a durable slot before any weather HTTP request
-        id: reserve
-        env:
-          QWEATHER_CREDENTIALS: '${{ secrets.QWEATHER_CREDENTIALS }}'
-        run: |
-          node qweather-service/service.js reserve --run-id "$RUN_TOKEN"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- qweather-service/state/hepo.json
-          if ! git diff --cached --quiet; then
-            git commit -m 'Reserve QWeather minute forecast quota slot'
-            if ! git push origin HEAD:codex/kindle-weather; then
-              git pull --rebase origin codex/kindle-weather
-              git push origin HEAD:codex/kindle-weather
-            fi
-          fi
-
-      - name: Fetch the reserved fixed-place forecast once
-        id: fetch
-        continue-on-error: true
-        env:
-          QWEATHER_CREDENTIALS: '${{ secrets.QWEATHER_CREDENTIALS }}'
-        run: node qweather-service/service.js fetch --run-id "$RUN_TOKEN" --cache-dir kindle-weather/cache
-
-      - name: Save outcomes and preserve the last valid public cache
-        if: always() && steps.reserve.outcome == 'success'
-        run: |
-          git add -- qweather-service/state/hepo.json
-          if [ -f kindle-weather/cache/hepo-rain.json ]; then
-            git add -- kindle-weather/cache/hepo-rain.json
-          fi
-          if ! git diff --cached --quiet; then
-            git commit -m 'Update QWeather minute cache and quota ledger'
-            # Git retry only: never repeat the weather HTTP request.
-            if ! git push origin HEAD:codex/kindle-weather; then
-              git pull --rebase origin codex/kindle-weather
-              git push origin HEAD:codex/kindle-weather
-            fi
-          fi
-
-      - name: Report failed or expired request after state is saved
-        if: always() && steps.fetch.outcome == 'failure'
-        run: |
-          echo '::error::QWeather request failed or expired. Retained prior data; inspect fixed error codes in ledger.'
-          exit 1

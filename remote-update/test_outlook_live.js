@@ -52,12 +52,40 @@ async function body(request) {
   return result.base64Encoded ? Buffer.from(result.body, "base64").toString("utf8") : result.body;
 }
 const dayKey = stamp => new Date((stamp + 28800) * 1000).toISOString().slice(0, 10);
+function deriveExpectedDisplay(value, instant) {
+  const stale = instant >= value.validUntil || instant - value.fetchedAt >= 600 || instant - value.updatedAt >= 1800;
+  const current = value.outlook.periods.findIndex(period => period.from <= instant && instant < period.to);
+  if (stale || current < 0) return {status: "updating", text: "雨情更新中"};
+  const periods = value.outlook.periods, row = periods[current], wet = period => period.kind === "rain" || period.kind === "snow";
+  const name = period => period.kind === "snow" ? "降雪" : {light: "小雨", moderate: "中雨", heavy: "大雨", violent: "强降雨"}[period.strength];
+  const duration = (seconds, up) => {
+    const minutes = (up ? Math.ceil(seconds / 300) : Math.floor(seconds / 300)) * 5;
+    const hours = Math.floor(minutes / 60), rest = minutes % 60;
+    return hours ? hours + "小时" + (rest ? rest + "分钟" : "") : minutes + "分钟";
+  };
+  if (wet(row)) {
+    let end = current + 1; while (end < periods.length && wet(periods[end])) end++;
+    const stop = end < periods.length && periods[end].kind === "dry" ? periods[end].from : null;
+    return {status: "wet", text: "当前" + name(row) + (stop === null ? "" : "·约" + duration(stop - instant, true) + "后停")};
+  }
+  let unknown = row.kind === "unknown", nextWet = null;
+  for (let i = current + 1; i < periods.length; i++) { if (periods[i].kind === "unknown") unknown = true; if (wet(periods[i])) { nextWet = periods[i]; break; } }
+  if (nextWet) {
+    if (unknown) return {status: "nearby", text: "近期有" + name(nextWet)};
+    const delay = nextWet.from - instant;
+    return {status: "onset", text: (delay <= 300 ? "5分钟内" : "约" + duration(delay, true) + "后") + "有" + name(nextWet)};
+  }
+  if (unknown) return {status: "updating", text: "雨情更新中"};
+  const covered = value.knownHorizonEnd - instant;
+  return {status: "dry", text: covered < 300 ? "短时无雨" : "未来" + duration(covered, false) + "无雨"};
+}
 function checkDerivedOutlook(value, observedAt) {
   assert.ok(value && typeof value === "object" && !Array.isArray(value));
   const allowed = ["schemaVersion", "source", "location", "fetchedAt", "updatedAt", "validUntil", "knownHorizonEnd", "outlook"];
   assert.ok(Object.keys(value).every(key => allowed.includes(key)), "Only the derived outlook may be public");
   assert.equal(value.schemaVersion, 3); assert.equal(value.source, "qweather");
   const location = value.location;
+  assert.deepEqual(Object.keys(location).sort(), ["id", "name", "latitude", "longitude", "datum", "timezone"].sort());
   assert.equal(location.id, "hepo"); assert.equal(location.datum, "GCJ02");
   assert.equal(location.timezone, "Asia/Shanghai"); assert.equal(location.latitude, 23.44); assert.equal(location.longitude, 115.84);
   for (const key of ["fetchedAt", "updatedAt", "validUntil", "knownHorizonEnd"]) assert.ok(Number.isInteger(value[key]));
@@ -79,22 +107,13 @@ function checkDerivedOutlook(value, observedAt) {
   const text = JSON.stringify(value);
   assert.ok(!/qweatherapi\.com|BEGIN [A-Z ]*PRIVATE KEY|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b|apiHost|privateKey|seedBase64|apikey|"(?:raw|minutely|summary|precip|precipitation|refer|synthetic)"/i.test(text));
   const current = periods.find(period => period.from <= observedAt && observedAt < period.to) || null;
-  const remaining = periods.filter(period => period.to > observedAt);
-  const nextNonDry = remaining.find(period => period.kind !== "dry") || null;
   const fresh = observedAt < value.validUntil && observedAt - value.fetchedAt < 600 && observedAt - value.updatedAt < 1800;
-  let expectedStatuses = ["updating"], onset = null;
-  if (fresh && current) {
-    if (current.kind === "rain" || current.kind === "snow") expectedStatuses = ["wet"];
-    else if (current.kind === "dry" && !nextNonDry) expectedStatuses = ["dry"];
-    else if (current.kind === "dry" && nextNonDry && (nextNonDry.kind === "rain" || nextNonDry.kind === "snow")) {
-      expectedStatuses = ["onset"]; onset = nextNonDry;
-    } else expectedStatuses = ["nearby", "updating", "dry"];
-  }
+  const expectedDisplay = deriveExpectedDisplay(value, observedAt);
   return {observedAt, fetchedAgeSeconds: observedAt - value.fetchedAt, sourceAgeSeconds: observedAt - value.updatedAt,
     validUntil: value.validUntil, secondsRemaining: value.validUntil - observedAt, fresh,
     maximumReceivedAgeSeconds: 600, maximumSourceAgeSeconds: 1800,
     currentKind: current && current.kind, currentStrength: current && current.strength,
-    expectedStatuses, onsetTime: onset && onset.from, onsetKind: onset && onset.kind};
+    expectedDisplay};
 }
 (async () => {
   let report;
@@ -124,14 +143,14 @@ function checkDerivedOutlook(value, observedAt) {
     await send("Page.enable"); await send("Runtime.enable"); await send("Network.enable");
     await send("Emulation.setDeviceMetricsOverride", {width: 600, height: 800, deviceScaleFactor: 1, mobile: false});
     // Canvas observation alone: partial footer clears remove old labels too.
-    await evaluate("window.observedPaint=[];var actualText=CanvasRenderingContext2D.prototype.fillText,actualFill=CanvasRenderingContext2D.prototype.fillRect;CanvasRenderingContext2D.prototype.fillRect=function(x,y,w,h){observedPaint=observedPaint.filter(function(p){return !(p.x>=x&&p.x<x+w&&p.y>=y&&p.y<y+h);});return actualFill.apply(this,arguments);};CanvasRenderingContext2D.prototype.fillText=function(text,x,y){observedPaint.push({text:String(text),x:x,y:y});return actualText.apply(this,arguments);};document.open();document.write(" + JSON.stringify(launcher) + ");document.close();void 0;");
+    await evaluate("window.observedPaint=[];var actualText=CanvasRenderingContext2D.prototype.fillText,actualFill=CanvasRenderingContext2D.prototype.fillRect;CanvasRenderingContext2D.prototype.fillRect=function(x,y,w,h){observedPaint=observedPaint.filter(function(p){return !(p.x>=x&&p.x<x+w&&p.y>=y&&p.y<y+h);});return actualFill.apply(this,arguments);};CanvasRenderingContext2D.prototype.fillText=function(text,x,y){observedPaint.push({text:String(text),x:x,y:y,at:Date.now()/1000});return actualText.apply(this,arguments);};document.open();document.write(" + JSON.stringify(launcher) + ");document.close();void 0;");
     let ready = false;
     for (let n = 0; n < 700; n++) {
       ready = await evaluate("!!(window.OpenMeteoSimple&&OpenMeteoSimple.getState().hasData&&OpenMeteoSimple.getState().rain&&OpenMeteoSimple.getState().rain.transportOK&&!OpenMeteoSimple.getState().rain.requestActive)");
       if (ready) break; await wait(50);
     }
     assert.equal(ready, true, "Both actual weather and the actual public derived rain cache must load");
-    const state = await evaluate("({update:KindleRemoteUpdateState,package:KindleWeatherPackage,client:OpenMeteoSimple.getState(),data:OpenMeteoProvider.getCached(),labels:observedPaint.map(function(p){return p.text;}),observedAt:Date.now()/1000,canvasCount:document.querySelectorAll('canvas#screen').length,canvasVisible:getComputedStyle(document.getElementById('screen')).display!=='none',loadingPlaceholder:!!document.getElementById('transport-loading'),nativeXHR:/native code/.test(XMLHttpRequest.toString()),nativeDate:/native code/.test(Date.toString()),oldClient:typeof MeteoblueClient,rawRainHelper:typeof KindleRainHint})");
+    const state = await evaluate("({update:KindleRemoteUpdateState,package:KindleWeatherPackage,client:OpenMeteoSimple.getState(),data:OpenMeteoProvider.getCached(),paint:observedPaint,labels:observedPaint.map(function(p){return p.text;}),observedAt:Date.now()/1000,canvasCount:document.querySelectorAll('canvas#screen').length,canvasVisible:getComputedStyle(document.getElementById('screen')).display!=='none',loadingPlaceholder:!!document.getElementById('transport-loading'),nativeXHR:/native code/.test(XMLHttpRequest.toString()),nativeDate:/native code/.test(Date.toString()),oldClient:typeof MeteoblueClient,rawRainHelper:typeof KindleRainHint})");
     assert.equal(state.nativeXHR, true); assert.equal(state.nativeDate, true);
     assert.equal(state.update.mode, "remote"); assert.equal(state.update.source, "open-meteo");
     assert.deepEqual(state.update.sources, ["open-meteo", "qweather"]); assert.deepEqual(state.package.actualSources, ["open-meteo", "qweather"]);
@@ -162,18 +181,12 @@ function checkDerivedOutlook(value, observedAt) {
     assert.equal(state.client.rain.periodCount, rain.outlook.periods.length);
     assert.equal(state.client.rain.knownHorizonEnd, rain.knownHorizonEnd);
     const hint = state.client.rain.hint;
-    assert.equal(hint.visible, true); assert.ok(state.labels.includes(hint.text), "The actual canvas must display the computed rain status");
+    assert.equal(hint.visible, true);
     assert.ok(state.labels.some(label => label.includes("和风天气")), "The provider must be drawn on canvas in all outlook states");
-    assert.ok(rainFreshness.expectedStatuses.includes(hint.status), "Actual outlook state must agree with the public periods: " + JSON.stringify(rainFreshness));
-    if (!rainFreshness.fresh) assert.equal(hint.text, "雨情更新中");
-    else if (hint.status === "dry") assert.match(hint.text, /无.*(?:雨|降水)/);
-    else if (hint.status === "wet") assert.ok(hint.text.includes(rainFreshness.currentKind === "snow" ? "雪" : "雨"));
-    else if (hint.status === "onset") {
-      assert.ok(hint.text.includes(rainFreshness.onsetKind === "snow" ? "雪" : "雨"));
-      const minutes = Math.ceil((rainFreshness.onsetTime - state.observedAt) / 300) * 5;
-      if (typeof hint.minutes === "number") assert.equal(hint.minutes, minutes);
-      if (minutes > 5 && minutes < 120) assert.ok(hint.text.includes(String(minutes) + "分钟"), "Rounded onset minutes must come from the real period boundary");
-    }
+    assert.equal(hint.status, rainFreshness.expectedDisplay.status); assert.equal(hint.text, rainFreshness.expectedDisplay.text);
+    const canvasHint = state.paint.find(item => item.y === 639);
+    assert.ok(canvasHint, "The actual rain line must be painted on canvas");
+    assert.equal(canvasHint.text, deriveExpectedDisplay(rain, canvasHint.at).text, "Painted text must match the same real periods at its native drawing time");
     for (const [field, native] of [["temperature", "temperature_2m"], ["weatherCode", "weather_code"], ["precipitation", "precipitation"]]) {
       assert.ok(Number.isFinite(raw.current[native])); assert.equal(state.data.current[field], raw.current[native]);
     }
@@ -207,7 +220,7 @@ function checkDerivedOutlook(value, observedAt) {
       tomorrow: tomorrowRow, afterTomorrow: afterRow, rainDerivedCache: rain, rainState: state.client.rain,
       rainFreshness, freshRainCacheVerified: rainFreshness.fresh,
       outcome: rainFreshness.fresh ? "complete real chain with fresh derived cache" : "real chain complete; expired rain cache correctly hidden",
-      renderedLabels: state.labels, sourceState: state.update, oneVisibleCanvas: true, rawRainHelperBundled: false,
+      renderedLabels: state.labels, drawnRainHint: canvasHint, sourceState: state.update, oneVisibleCanvas: true, rawRainHelperBundled: false,
       rawRainPublished: false, derivedQualitativePeriodsOnly: true, noCredentialsInCache: true, noDirectQWeatherRequests: true, errors,
       programCalls: 1, openMeteoCalls: 1, gitHubRainCacheReads: 1, qweatherProviderCallsByThisTest: 0,
       deviceOperations: 0, screenshot, timersStoppedAfterCapture: true,

@@ -154,14 +154,14 @@ repository Actions secret. To reproduce or maintain the deployment:
 - Put `qweather-service/` and the controlled `openmeteo-simple/rain_hint.js` on
   `codex/kindle-weather`; both are required by the clone-reproducible tests.
 - Set repository Actions secret `QWEATHER_CREDENTIALS` without exposing its value.
-- Put `deploy/kindle-qweather.yml` on the default branch `main` at
-  `.github/workflows/kindle-qweather.yml`. It checks out the weather branch,
+- Put `deploy/kindle-rain-refresh.yml` on the default branch `main` at
+  `.github/workflows/kindle-rain-refresh.yml`. It checks out the weather branch,
   tests offline, validates credentials, pushes reservation, fetches once, then
   commits outcomes/cache. Both pushes may rebase/retry Git, never weather HTTP.
 - The first normal run must verify an actual usable response before activating
   the reader. No extra probe or automatic manual rerun is needed.
 
-Cron `2,7,12,17,22,27,32,37,42,47,52,57 * * * *` avoids minute zero. GitHub schedules may be delayed or
+Cron `*/5 * * * *` is the standard five-minute registration. GitHub schedules may be delayed or
 dropped; it is not a guaranteed five-minute service. The public cache also has
 GitHub/client caching delays. Expired short-range hints must be hidden/unavailable,
 never displayed as current rain/no-rain claims. The main Open-Meteo display can
