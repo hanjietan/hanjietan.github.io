@@ -1,0 +1,418 @@
+{
+  "schemaVersion": 1,
+  "source": "meteoblue",
+  "location": {
+    "id": "hepo",
+    "name": "揭西河婆",
+    "latitude": 23.4394,
+    "longitude": 115.8305,
+    "timezone": "Asia/Shanghai"
+  },
+  "generatedAt": 1794106711,
+  "intervalSeconds": 21600,
+  "units": {
+    "temperature": "C",
+    "relativeHumidity": "%",
+    "totalCloudCover": "%",
+    "windSpeed": "m/s",
+    "windDirection": "degree",
+    "precipitation": "mm"
+  },
+  "attribution": {
+    "name": "meteoblue",
+    "url": "https://www.meteoblue.com/"
+  },
+  "packages": {
+    "basic": {
+      "fetchedAt": 1794106711,
+      "modelrunUtc": 1794106711,
+      "modelrunUpdateTimeUtc": 1794106711,
+      "accountedCredits": 4000,
+      "resolutionHours": 6,
+      "status": "ready",
+      "latestAttempt": {
+        "reservedAt": 1794106709,
+        "attemptedAt": 1794106711,
+        "status": "success",
+        "error": null,
+        "accountedCredits": 4000,
+        "conservativeCredits": 4000
+      }
+    },
+    "clouds": {
+      "fetchedAt": 1794106711,
+      "modelrunUtc": 1794106711,
+      "modelrunUpdateTimeUtc": 1794106711,
+      "accountedCredits": 4000,
+      "resolutionHours": 6,
+      "status": "ready",
+      "latestAttempt": {
+        "reservedAt": 1794106709,
+        "attemptedAt": 1794106711,
+        "status": "success",
+        "error": null,
+        "accountedCredits": 4000,
+        "conservativeCredits": 4000
+      }
+    }
+  },
+  "sixHourly": [
+    {
+      "time": 1794067200,
+      "precipitation": 0.0,
+      "relativeHumidity": 79,
+      "temperature": 22.26,
+      "totalCloudCover": 64,
+      "windDirection": 90,
+      "windSpeed": 1.68
+    },
+    {
+      "time": 1794088800,
+      "precipitation": 0.0,
+      "relativeHumidity": 85,
+      "temperature": 21.3,
+      "totalCloudCover": 69,
+      "windDirection": 90,
+      "windSpeed": 1.06
+    },
+    {
+      "time": 1794110400,
+      "precipitation": 0.0,
+      "relativeHumidity": 60,
+      "temperature": 27.66,
+      "totalCloudCover": 24,
+      "windDirection": 90,
+      "windSpeed": 1.31
+    },
+    {
+      "time": 1794132000,
+      "precipitation": 0.0,
+      "relativeHumidity": 67,
+      "temperature": 26.47,
+      "totalCloudCover": 41,
+      "windDirection": 45,
+      "windSpeed": 1.36
+    },
+    {
+      "time": 1794153600,
+      "precipitation": 0.0,
+      "relativeHumidity": 84,
+      "temperature": 22.19,
+      "totalCloudCover": 60,
+      "windDirection": 45,
+      "windSpeed": 1.33
+    },
+    {
+      "time": 1794175200,
+      "precipitation": 0.0,
+      "relativeHumidity": 77,
+      "temperature": 18.3,
+      "totalCloudCover": 44,
+      "windDirection": 0,
+      "windSpeed": 3.59
+    },
+    {
+      "time": 1794196800,
+      "precipitation": 0.0,
+      "relativeHumidity": 56,
+      "temperature": 21.94,
+      "totalCloudCover": 26,
+      "windDirection": 0,
+      "windSpeed": 6.25
+    },
+    {
+      "time": 1794218400,
+      "precipitation": 0.0,
+      "relativeHumidity": 55,
+      "temperature": 18.6,
+      "totalCloudCover": 3,
+      "windDirection": 0,
+      "windSpeed": 6.67
+    },
+    {
+      "time": 1794240000,
+      "precipitation": 0.0,
+      "relativeHumidity": 65,
+      "temperature": 13.32,
+      "totalCloudCover": 29,
+      "windDirection": 0,
+      "windSpeed": 4.23
+    },
+    {
+      "time": 1794261600,
+      "precipitation": 0.0,
+      "relativeHumidity": 69,
+      "temperature": 10.51,
+      "totalCloudCover": 24,
+      "windDirection": 315,
+      "windSpeed": 2.77
+    },
+    {
+      "time": 1794283200,
+      "precipitation": 0.0,
+      "relativeHumidity": 45,
+      "temperature": 18.03,
+      "totalCloudCover": 4,
+      "windDirection": 315,
+      "windSpeed": 2.47
+    },
+    {
+      "time": 1794304800,
+      "precipitation": 0.0,
+      "relativeHumidity": 53,
+      "temperature": 16.68,
+      "totalCloudCover": 3,
+      "windDirection": 0,
+      "windSpeed": 2.48
+    },
+    {
+      "time": 1794326400,
+      "precipitation": 0.0,
+      "relativeHumidity": 77,
+      "temperature": 12.69,
+      "totalCloudCover": 2,
+      "windDirection": 315,
+      "windSpeed": 1.06
+    },
+    {
+      "time": 1794348000,
+      "precipitation": 0.0,
+      "relativeHumidity": 80,
+      "temperature": 12.02,
+      "totalCloudCover": 36,
+      "windDirection": 315,
+      "windSpeed": 1.1
+    },
+    {
+      "time": 1794369600,
+      "precipitation": 0.0,
+      "relativeHumidity": 57,
+      "temperature": 21.63,
+      "totalCloudCover": 50,
+      "windDirection": 45,
+      "windSpeed": 2.07
+    },
+    {
+      "time": 1794391200,
+      "precipitation": 0.0,
+      "relativeHumidity": 65,
+      "temperature": 20.2,
+      "totalCloudCover": 27,
+      "windDirection": 90,
+      "windSpeed": 2.73
+    },
+    {
+      "time": 1794412800,
+      "precipitation": 0.0,
+      "relativeHumidity": 86,
+      "temperature": 16.48,
+      "totalCloudCover": 44,
+      "windDirection": 45,
+      "windSpeed": 0.85
+    },
+    {
+      "time": 1794434400,
+      "precipitation": 0.0,
+      "relativeHumidity": 87,
+      "temperature": 15.69,
+      "totalCloudCover": 35,
+      "windDirection": 45,
+      "windSpeed": 0.82
+    },
+    {
+      "time": 1794456000,
+      "precipitation": 0.0,
+      "relativeHumidity": 52,
+      "temperature": 24.93,
+      "totalCloudCover": 24,
+      "windDirection": 90,
+      "windSpeed": 1.39
+    },
+    {
+      "time": 1794477600,
+      "precipitation": 0.0,
+      "relativeHumidity": 66,
+      "temperature": 22.71,
+      "totalCloudCover": 13,
+      "windDirection": 90,
+      "windSpeed": 1.83
+    },
+    {
+      "time": 1794499200,
+      "precipitation": 0.0,
+      "relativeHumidity": 93,
+      "temperature": 18.32,
+      "totalCloudCover": 20,
+      "windDirection": 90,
+      "windSpeed": 0.93
+    },
+    {
+      "time": 1794520800,
+      "precipitation": 0.0,
+      "relativeHumidity": 97,
+      "temperature": 17.75,
+      "totalCloudCover": 98,
+      "windDirection": 0,
+      "windSpeed": 0.8
+    },
+    {
+      "time": 1794542400,
+      "precipitation": 0.0,
+      "relativeHumidity": 61,
+      "temperature": 25.78,
+      "totalCloudCover": 48,
+      "windDirection": 90,
+      "windSpeed": 1.64
+    },
+    {
+      "time": 1794564000,
+      "precipitation": 0.0,
+      "relativeHumidity": 74,
+      "temperature": 23.05,
+      "totalCloudCover": 54,
+      "windDirection": 90,
+      "windSpeed": 2.02
+    },
+    {
+      "time": 1794585600,
+      "precipitation": 0.0,
+      "relativeHumidity": 94,
+      "temperature": 20.14,
+      "totalCloudCover": 44,
+      "windDirection": 90,
+      "windSpeed": 1.36
+    },
+    {
+      "time": 1794607200,
+      "precipitation": 0.0,
+      "relativeHumidity": 93,
+      "temperature": 19.69,
+      "totalCloudCover": 73,
+      "windDirection": 90,
+      "windSpeed": 0.88
+    },
+    {
+      "time": 1794628800,
+      "precipitation": 0.0,
+      "relativeHumidity": 77,
+      "temperature": 24.2,
+      "totalCloudCover": 70,
+      "windDirection": 90,
+      "windSpeed": 1.78
+    },
+    {
+      "time": 1794650400,
+      "precipitation": 3.6,
+      "relativeHumidity": 89,
+      "temperature": 22.08,
+      "totalCloudCover": 75,
+      "windDirection": 90,
+      "windSpeed": 2.26
+    },
+    {
+      "time": 1794672000,
+      "precipitation": 0.0,
+      "relativeHumidity": 96,
+      "temperature": 20.95,
+      "totalCloudCover": 81,
+      "windDirection": 45,
+      "windSpeed": 0.92
+    }
+  ],
+  "daily": [
+    {
+      "time": 1794088800,
+      "precipitation": 0.0,
+      "relativeHumidity": 74,
+      "temperatureMax": 29.19,
+      "temperatureMean": 24.43,
+      "temperatureMin": 20.87,
+      "totalCloudCover": 49,
+      "windDirection": 90,
+      "windSpeed": 1.27
+    },
+    {
+      "time": 1794175200,
+      "precipitation": 0.0,
+      "relativeHumidity": 64,
+      "temperatureMax": 22.71,
+      "temperatureMean": 19.05,
+      "temperatureMin": 13.32,
+      "totalCloudCover": 26,
+      "windDirection": 0,
+      "windSpeed": 5.18
+    },
+    {
+      "time": 1794261600,
+      "precipitation": 0.0,
+      "relativeHumidity": 60,
+      "temperatureMax": 19.78,
+      "temperatureMean": 14.61,
+      "temperatureMin": 10.5,
+      "totalCloudCover": 8,
+      "windDirection": 315,
+      "windSpeed": 2.19
+    },
+    {
+      "time": 1794348000,
+      "precipitation": 0.0,
+      "relativeHumidity": 71,
+      "temperatureMax": 23.21,
+      "temperatureMean": 17.25,
+      "temperatureMin": 11.49,
+      "totalCloudCover": 39,
+      "windDirection": 90,
+      "windSpeed": 1.69
+    },
+    {
+      "time": 1794434400,
+      "precipitation": 0.0,
+      "relativeHumidity": 73,
+      "temperatureMax": 26.1,
+      "temperatureMean": 20.31,
+      "temperatureMin": 15.09,
+      "totalCloudCover": 23,
+      "windDirection": 90,
+      "windSpeed": 1.24
+    },
+    {
+      "time": 1794520800,
+      "precipitation": 0.0,
+      "relativeHumidity": 81,
+      "temperatureMax": 26.67,
+      "temperatureMean": 21.69,
+      "temperatureMin": 17.24,
+      "totalCloudCover": 61,
+      "windDirection": 90,
+      "windSpeed": 1.46
+    },
+    {
+      "time": 1794607200,
+      "precipitation": 3.6,
+      "relativeHumidity": 89,
+      "temperatureMax": 24.24,
+      "temperatureMean": 21.75,
+      "temperatureMin": 19.54,
+      "totalCloudCover": 75,
+      "windDirection": 90,
+      "windSpeed": 1.46
+    }
+  ],
+  "accounting": {
+    "reportedCredits": 8000,
+    "conservativeCredits": 8000,
+    "unknownCreditRequests": 0
+  },
+  "paused": null,
+  "semantics": {
+    "temperature": "instant_at_interval_end",
+    "relativeHumidity": "instant_at_interval_end",
+    "precipitation": "preceding_6h_sum",
+    "windSpeed": "preceding_6h_mean",
+    "windDirection": "preceding_6h_mean",
+    "totalCloudCover": "preceding_6h_mean",
+    "daily": "local_calendar_day; precipitation=sum, clouds/wind/humidity=mean",
+    "freshness": "Package fetchedAt is last successful retrieval, not display redraw time.",
+    "version": "Modelrun timestamps do not guarantee detection of all short-range revisions."
+  }
+}
