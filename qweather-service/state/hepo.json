@@ -47,8 +47,11 @@
       "slot": 5980471,
       "month": "2026-11",
       "reservedAt": 1794141565,
-      "attemptedAt": null,
-      "status": "reserved"
+      "attemptedAt": 1794141566,
+      "status": "success",
+      "completedAt": 1794141566,
+      "httpStatus": 200,
+      "apiCode": "200"
     }
   },
   "monthlyCounts": {
@@ -56,7 +59,7 @@
   },
   "paused": null,
   "lastSuccess": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "source": "qweather",
     "location": {
       "id": "hepo",
@@ -66,14 +69,19 @@
       "datum": "GCJ02",
       "timezone": "Asia/Shanghai"
     },
-    "fetchedAt": 1794138959,
-    "updatedAt": 1794138300,
-    "validUntil": 1794139559,
-    "knownHorizonEnd": 1794145500,
-    "alert": {
-      "kind": "rain",
-      "forecastTime": 1794140400,
-      "timing": "approximate"
+    "fetchedAt": 1794141566,
+    "updatedAt": 1794141000,
+    "validUntil": 1794142166,
+    "knownHorizonEnd": 1794148200,
+    "outlook": {
+      "periods": [
+        {
+          "from": 1794141566,
+          "to": 1794148200,
+          "kind": "dry",
+          "strength": null
+        }
+      ]
     }
   }
 }
