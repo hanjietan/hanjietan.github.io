@@ -2,7 +2,7 @@
 (function (root) {
   "use strict";
   var URL="https://api.github.com/repos/hanjietan/hanjietan.github.io/contents/kindle-weather/cache/hepo-rain.json?ref=codex%2Fkindle-weather";
-  var POLL=300000,LOCAL=60000,FUTURE_SKEW=120;
+  var POLL=300000,LOCAL=60000,FUTURE_SKEW=120,RECEIPT_MAX_AGE=600,SOURCE_MAX_AGE=1800;
   function finite(value){return typeof value==="number"&&isFinite(value);}
   function epoch(value){return finite(value)&&value>=946684800&&value<4102444800;}
   function hidden(reason,until){return{visible:false,text:"",reason:reason,validUntil:until||null};}
@@ -12,7 +12,7 @@
     if("raw" in envelope||"minutely" in envelope||"summary" in envelope||"refer" in envelope||!epoch(envelope.fetchedAt)||!epoch(envelope.updatedAt)||!epoch(envelope.validUntil)||envelope.validUntil<=envelope.fetchedAt||envelope.validUntil<=envelope.updatedAt)throw new Error("invalid_derived_rain_cache");
     var alert=envelope.alert;
     if(alert!==null&&(!alert||(alert.kind!=="rain"&&alert.kind!=="snow")||!epoch(alert.forecastTime)||alert.forecastTime>envelope.fetchedAt+7200||(alert.timing!=="approximate"&&alert.timing!=="nearby")||"precipitation" in alert||"summary" in alert))throw new Error("invalid_rain_alert");
-    return{schemaVersion:2,source:"qweather",fetchedAt:envelope.fetchedAt,updatedAt:envelope.updatedAt,validUntil:Math.min(envelope.validUntil,envelope.updatedAt+900,envelope.fetchedAt+900),alert:alert?{kind:alert.kind,forecastTime:alert.forecastTime,timing:alert.timing}:null};
+    return{schemaVersion:2,source:"qweather",fetchedAt:envelope.fetchedAt,updatedAt:envelope.updatedAt,validUntil:Math.min(envelope.validUntil,envelope.updatedAt+SOURCE_MAX_AGE,envelope.fetchedAt+RECEIPT_MAX_AGE),alert:alert?{kind:alert.kind,forecastTime:alert.forecastTime,timing:alert.timing}:null};
   }
   function Reader(options){
     options=options||{};

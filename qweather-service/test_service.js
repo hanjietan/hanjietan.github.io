@@ -120,7 +120,7 @@ test('schema2 only publishes a derived hint; unknown prior precipitation makes t
   const cache = JSON.parse(fs.readFileSync(f.cache, 'utf8'));
   assert.deepEqual(cache.location, s.LOCATION); assert.equal(cache.location.datum, 'GCJ02');
   assert.equal(cache.schemaVersion, 2); assert.equal(cache.source, 'qweather'); assert.equal(cache.fetchedAt, NOW);
-  assert.equal(cache.updatedAt, NOW); assert.equal(cache.validUntil, NOW + 900);
+  assert.equal(cache.updatedAt, NOW); assert.equal(cache.validUntil, NOW + 600);
   assert.deepEqual(cache.alert, {kind: 'rain', forecastTime: NOW + 900, timing: 'nearby'});
   for (const name of ['raw', 'summary', 'minutely', 'precip', 'precipitation', 'refer', 'extraPrivateField', 'request_url']) {
     assert.equal(Object.hasOwn(cache, name), false);
@@ -148,7 +148,24 @@ test('a repeated successful source issue keeps updatedAt instead of renewing sou
   await slot(f, 'second', NOW + 300, async () => ({statusCode: 200, raw: raw(NOW)}));
   const cache = JSON.parse(fs.readFileSync(f.cache, 'utf8'));
   assert.equal(cache.fetchedAt, NOW + 300); assert.equal(cache.updatedAt, NOW);
-  assert.equal(cache.validUntil, NOW + 900);
+  assert.equal(cache.validUntil, NOW + 900); // A new upstream response, not merely a cache GET.
+});
+test('source aged twelve minutes gets ten received minutes; age twenty-nine gets only one', () => {
+  assert.equal(s.MAX_CACHE_AGE, 600); assert.equal(s.MAX_SOURCE_AGE, 1800);
+  const twelve = s.normalizeRaw(raw(NOW - 720), NOW);
+  assert.equal(twelve.updatedAt, NOW - 720); assert.equal(twelve.fetchedAt, NOW);
+  assert.equal(twelve.validUntil, NOW + 600);
+  const twentyNine = s.normalizeRaw(raw(NOW - 1740), NOW);
+  assert.equal(twentyNine.updatedAt, NOW - 1740); assert.equal(twentyNine.validUntil, NOW + 60);
+  assert.throws(() => s.normalizeRaw(raw(NOW - 1801), NOW), /stale_provider_data/);
+});
+test('a failed later fetch never renews the prior derived validUntil', async t => {
+  const f = files(t); await slot(f, 'initial', NOW, async () => ({statusCode: 200, raw: raw(NOW - 720)}));
+  const before = fs.readFileSync(f.cache, 'utf8');
+  const initial = JSON.parse(before); assert.equal(initial.validUntil, NOW + 600);
+  await slot(f, 'later-failure', NOW + 300, async () => { throw new Error('offline test network failure'); });
+  assert.equal(fs.readFileSync(f.cache, 'utf8'), before);
+  assert.equal(s.loadState(f.state).lastSuccess.validUntil, NOW + 600);
 });
 test('raw summary, amounts, references, secrets and arrays never enter the derived public product', () => {
   const token = s.createJwt(credentials, NOW);

@@ -101,7 +101,10 @@ alert: null OR {kind:"rain"|"snow", forecastTime:Unix UTC seconds,
 ```
 
 The server calls the controlled helper's `normalize(raw, fetchedAt)` and
-`analyze(normalized, now)` in memory. That helper knows native amounts are
+`analyze(normalized, now, {maxAgeSeconds:1800})` in memory, then clamps the
+derived product to `min(fetchedAt+600, updatedAt+1800, knownHorizonEnd)`.
+The exported constants are `MAX_CACHE_AGE=600` and `MAX_SOURCE_AGE=1800`.
+That helper knows native amounts are
 five-minute accumulated mm, not mm/hour, and keeps missing values unknown.
 It downgrades timing to `nearby` when prior coverage has gaps or unknown data;
 it does not infer a precise onset through missing data. A visible positive
@@ -115,12 +118,16 @@ Open-Meteo's licence. The output is a derived display product rather than a
 redistribution of the provider's raw time series.
 
 Only usable success data replace the public file. HTTP/API errors, malformed
-data, all-unknown future amounts, source timestamps 15 minutes old or older,
+data, all-unknown future amounts, source timestamps 30 minutes old or older,
 more than two minutes in the future, or older than the prior source issue leave
 the last public cache **byte-for-byte unchanged**, including `fetchedAt`.
 A successful repeat of the same still-fresh source issue may record a new
 retrieval `fetchedAt`; its original `updatedAt` is never renewed. The
 frontend must expire hints by the provider time, not by cache-download time.
+Reading the public cache again never creates a new retrieval or extends its
+existing `validUntil`. Twelve-minute-old source data received now can be used
+for at most ten more minutes; twenty-nine-minute-old source data has at most
+one minute left. Failed requests preserve all old times and expiry unchanged.
 Regression checks compare the prior derived `updatedAt`. A legacy raw-shaped
 state fails closed instead of being republished.
 

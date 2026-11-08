@@ -10,7 +10,8 @@ const {KindleRainHint} = require('../openmeteo-simple/rain_hint.js');
 const SLOT_SECONDS = 300;
 const MONTH_CAP = 10000;
 const KEEP_RESERVATIONS = 96;
-const MAX_SOURCE_AGE = 900;
+const MAX_CACHE_AGE = 600;
+const MAX_SOURCE_AGE = 1800;
 const LOCATION = Object.freeze({id: 'hepo', name: '揭西河婆', latitude: 23.44,
   longitude: 115.84, datum: 'GCJ02', timezone: 'Asia/Shanghai'});
 const BLOCK_CODES = new Set([401, 402, 403, 429]);
@@ -147,7 +148,7 @@ function normalizeRaw(raw, now, previous = null) {
   const hint = KindleRainHint.analyze(normalized, now, {maxAgeSeconds: MAX_SOURCE_AGE});
   const horizonEnd = normalized.bins[normalized.bins.length - 1].time + SLOT_SECONDS;
   const validUntil = Math.min(hint.validUntil || horizonEnd, issued + MAX_SOURCE_AGE,
-    now + MAX_SOURCE_AGE, horizonEnd);
+    now + MAX_CACHE_AGE, horizonEnd);
   if (now >= validUntil) throw new SafeError('stale_provider_data');
   const alert = hint.visible ? {kind: hint.type, forecastTime: Math.floor(hint.forecastTime),
     timing: hint.minutes === null ? 'nearby' : 'approximate'} : null;
@@ -281,7 +282,7 @@ async function main(argv = process.argv.slice(2), env = process.env, output = co
     return 1;
   }
 }
-module.exports = {SLOT_SECONDS, MONTH_CAP, KEEP_RESERVATIONS, LOCATION, SafeError,
+module.exports = {SLOT_SECONDS, MONTH_CAP, KEEP_RESERVATIONS, MAX_CACHE_AGE, MAX_SOURCE_AGE, LOCATION, SafeError,
   host, parseCredentials, createJwt, monthOf, atomicJson, withLock, loadState,
   reserve, normalizeRaw, requestOnce, fetchReserved, main};
 if (require.main === module) main().then(code => { process.exitCode = code; });

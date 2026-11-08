@@ -8,9 +8,9 @@ Open-Meteo 主天气首次/手动即读，自动取数仍为每六小时的北�
 
 页面为 ES5，自包含 `bundle.html` 依次内联 NoSleep、rain_cache、provider、client 和完整 MIT 许可。原始分钟数据分析器 rain_hint 只在后端使用，不进入公开HTML。主来源 marker 为 `kindle-weather-source:open-meteo:v1`，额外来源为 `kindle-weather-additional-source:qweather-minute-cache:v1`；不带 Meteoblue 来源标记。旧书所需兼容封套由另一目录负责，保持实际客户端字节和实际来源不变。NoSleep 与冻结版逐字节相同，需要点“保持显示”；页面退出时取消媒体、所有网络和本地显示定时器。
 
-`rain_cache.js` 每5分钟读固定 GitHub `cache/hepo-rain.json`，每60秒本地重算，失效边界立即隐藏；重绘时也核对有效期。源更新时间和实际取得时间任一超过15分钟、超出2分钟时钟容差的未来时间、404、错误/未知数据都不会显示提示，不表示无雨。GitHub Actions 可能延迟，延迟导致缓存过期时隐藏。重新下载同一版旧预报不会续鲜；错误保留内部原时间但隐藏提示。浏览器不调用和风API、不持有JWT/私钥。
+`rain_cache.js` 每5分钟读固定 GitHub `cache/hepo-rain.json`，每60秒本地重算，失效边界立即隐藏；重绘时也核对有效期。收到数据后最多保留10分钟，且源更新时间最多允许30分钟；两者任一到期、超出2分钟时钟容差的未来时间、404、错误/未知数据都不会显示提示，不表示无雨。该策略针对实际观察到约12分钟源延迟校准；GitHub Actions 仍可能延迟，缓存过期时隐藏。重读同一文件不会改动原始时间或原validUntil；错误保留内部原时间但隐藏提示。浏览器不调用和风API、不持有JWT/私钥。
 
-公开缓存 schemaVersion=2，只含地点/时间与派生 alert:null 或 {kind:rain|snow,forecastTime,timing:approximate|nearby}，不含API原始分钟数组、summary、降水量或refer。客户端拒绝旧schema1/raw缓存；有效期再取validUntil、updatedAt+900、fetchedAt+900的最小值。approximate时用时刻重算5分钟粒度，标签已过去即改“近期可能有雨/雪”；nearby始终使用这句，不把未知覆盖变成起雨倒计时。
+公开缓存 schemaVersion=2，只含地点/时间与派生 alert:null 或 {kind:rain|snow,forecastTime,timing:approximate|nearby}，不含API原始分钟数组、summary、降水量或refer。客户端拒绝旧schema1/raw缓存；有效期取validUntil、updatedAt+1800、fetchedAt+600的最小值：源已旧12分钟但刚取得，可用最多10分钟；源已旧29分钟，仅余最多1分钟。approximate时用时刻重算5分钟粒度，标签已过去即改“近期可能有雨/雪”；nearby始终使用这句，不把未知覆盖变成起雨倒计时。
 
 正降水之前若有缺测、未知类型、时间缺口或早先已出现降水，只显示“近期可能有雨/雪”；连续已知0覆盖才显示近似分钟数。有效提示用底部32px一行替换主天气取得时间；隐藏后恢复，不改顶部和日卡。和风署名在提示可见/隐藏时均保留。
 

@@ -4,17 +4,16 @@
     "open-meteo",
     "qweather"
   ],
-  "additional_sources": [
-    "qweather"
-  ],
-  "ui_revision": "rain-hint-v1",
-  "client_sha256": "45ca8465d729b5155e7800ba98d6ae0924a467062ac4ce95f1c115c00ac05ff7",
-  "client_bytes": 52316,
-  "envelope_sha256": "01f6d80fedcfb8dca720cd3de9dfa9b53d97ffac0e9105eef1bbf485aa1c6bce",
-  "envelope_bytes": 71494,
+  "ui_revision": "rain-hint-v2",
+  "client_sha256": "ba0ebbcec0438db61d97ca3c696139a3f0b3917b94ca96d29ba3549666f39d79",
+  "client_bytes": 52379,
+  "envelope_sha256": "91b9f672b3b1c2a21022820b0eaa215427d55fc324239baad6468d67a29d5c51",
+  "envelope_bytes": 71578,
   "qweather_cache_schema": 2,
-  "qweather_public_data": "derived hint and valid times only",
+  "qweather_public_data": "derived hint only",
+  "received_cache_max_age_seconds": 600,
+  "source_max_age_seconds": 1800,
+  "monthly_request_cap": 10000,
   "credentials_embedded": false,
-  "snapshot_embedded": false,
-  "monthly_qweather_request_cap": 10000
+  "snapshot_embedded": false
 }
