@@ -1,4 +1,0 @@
-__pycache__/
-*.pyc
-state/.fetch.lock
-state/*.tmp
