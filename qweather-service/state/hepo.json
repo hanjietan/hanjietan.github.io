@@ -19,10 +19,18 @@
       "completedAt": 1794137828,
       "httpStatus": 200,
       "apiCode": "200"
+    },
+    "5980461": {
+      "runId": "42477256453-1",
+      "slot": 5980461,
+      "month": "2026-11",
+      "reservedAt": 1794138438,
+      "attemptedAt": null,
+      "status": "reserved"
     }
   },
   "monthlyCounts": {
-    "2026-11": 1
+    "2026-11": 2
   },
   "paused": null,
   "lastSuccess": {
