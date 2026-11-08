@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN">
 <!-- kindle-weather-package:v1 -->
-<!-- kindle-weather-source:meteoblue-cache:v1 -->
+<!-- kindle-weather-source:open-meteo:v1 -->
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -21,7 +21,7 @@
   <div id="controls">
     <div id="status" role="status"></div>
     <div id="toolbar"><button id="refresh">更新</button><button id="awake">保持显示</button></div>
-    <div id="credits"><a href="https://www.meteoblue.com/">meteoblue</a></div>
+    <div id="credits"><a href="https://open-meteo.com/">Open-Meteo · CC BY 4.0</a></div>
   </div>
   <script>
 /*!
@@ -239,20 +239,173 @@
 
 </script>
   <script>
-/* ES5 Meteoblue daily display. Reads only the public credential-free cache. */
+/* Open-Meteo public, non-commercial single-place adapter. ES5 / Chrome 49. */
+(function (root) {
+  'use strict';
+  var LOCATION = {id: 'hepo', name: '揭西河婆', latitude: 23.4394,
+    longitude: 115.8305, timezone: 'Asia/Shanghai'};
+  var WMO = {0:1,1:1,2:1,3:1,45:1,48:1,51:1,53:1,55:1,56:1,57:1,
+    61:1,63:1,65:1,66:1,67:1,71:1,73:1,75:1,77:1,80:1,81:1,82:1,
+    85:1,86:1,95:1,96:1,99:1};
+  var lastSuccess = null;
+  var active = null;
+
+  function clone(value) {
+    return value === null ? null : JSON.parse(JSON.stringify(value));
+  }
+  function numeric(value, minimum, maximum) {
+    return typeof value === 'number' && isFinite(value) && value >= minimum && value <= maximum ? value : null;
+  }
+  function epoch(value) {
+    if (numeric(value, 946684800, 4102444800) === null || Math.floor(value) !== value) {
+      throw new Error('invalid_timestamp_seconds');
+    }
+    return value;
+  }
+  function code(value) {
+    return typeof value === 'number' && Math.floor(value) === value && WMO[value] === 1 ? value : null;
+  }
+  function pad(value) { return value < 10 ? '0' + value : '' + value; }
+  function cstDate(stamp) {
+    var date = new Date((stamp + 28800) * 1000);
+    return date.getUTCFullYear() + '-' + pad(date.getUTCMonth() + 1) + '-' + pad(date.getUTCDate());
+  }
+  function arrayOfLength(value, length) {
+    return Object.prototype.toString.call(value) === '[object Array]' && value.length === length;
+  }
+  function normalize(raw, fetchedAt) {
+    if (!raw || raw.timezone !== LOCATION.timezone || raw.utc_offset_seconds !== 28800) {
+      throw new Error('unexpected_timezone');
+    }
+    var current = raw.current;
+    var daily = raw.daily;
+    var cu = raw.current_units || {};
+    var du = raw.daily_units || {};
+    if ((cu.temperature_2m !== '\u00b0C' && cu.temperature_2m !== 'C') || cu.precipitation !== 'mm' ||
+        (du.temperature_2m_min !== '\u00b0C' && du.temperature_2m_min !== 'C') ||
+        (du.temperature_2m_max !== '\u00b0C' && du.temperature_2m_max !== 'C') || du.precipitation_sum !== 'mm' ||
+        cu.time !== 'unixtime' || du.time !== 'unixtime' || cu.interval !== 'seconds') {
+      throw new Error('unexpected_units');
+    }
+    if (!current || numeric(current.temperature_2m, -100, 70) === null ||
+        numeric(current.interval, 1, 3600) === null) {
+      throw new Error('missing_current_temperature');
+    }
+    if (!daily || Object.prototype.toString.call(daily.time) !== '[object Array]' || daily.time.length < 3) {
+      throw new Error('missing_daily_forecast');
+    }
+    var length = daily.time.length;
+    var fields = ['temperature_2m_min', 'temperature_2m_max', 'weather_code', 'precipitation_sum'];
+    var i;
+    for (i = 0; i < fields.length; i += 1) {
+      if (!arrayOfLength(daily[fields[i]], length)) { throw new Error('incomplete_daily_forecast'); }
+    }
+    var rows = [];
+    var previous = null;
+    for (i = 0; i < length; i += 1) {
+      var stamp = epoch(daily.time[i]);
+      if ((stamp + 28800) % 86400 !== 0 || (previous !== null && stamp - previous !== 86400)) {
+        throw new Error('invalid_daily_axis');
+      }
+      var minimum = numeric(daily.temperature_2m_min[i], -100, 70);
+      var maximum = numeric(daily.temperature_2m_max[i], -100, 70);
+      if (minimum !== null && maximum !== null && minimum > maximum) { minimum = null; maximum = null; }
+      rows.push({time: stamp, date: cstDate(stamp), temperatureMin: minimum, temperatureMax: maximum,
+        weatherCode: code(daily.weather_code[i]), precipitation: numeric(daily.precipitation_sum[i], 0, 10000)});
+      previous = stamp;
+    }
+    return {schemaVersion: 1, source: 'open-meteo', weatherCodeSystem: 'wmo-4677',
+      location: clone(LOCATION), fetchedAt: epoch(fetchedAt), stale: false,
+      current: {time: epoch(current.time), intervalSeconds: current.interval,
+        temperature: current.temperature_2m, weatherCode: code(current.weather_code),
+        precipitation: numeric(current.precipitation, 0, 10000)}, daily: rows,
+      units: {temperature: 'C', precipitation: 'mm'},
+      grid: {latitude: numeric(raw.latitude, -90, 90), longitude: numeric(raw.longitude, -180, 180),
+        elevation: numeric(raw.elevation, -500, 9000)},
+      attribution: {name: 'Open-Meteo', url: 'https://open-meteo.com/', licence: 'CC BY 4.0'},
+      semantics: {current: '15-minute model conditions, not a station observation',
+        currentPrecipitation: 'sum over preceding current.interval seconds',
+        dailyPrecipitation: 'local-calendar-day total, including rain, showers and snow',
+        dailyWeatherCode: 'most severe WMO weather condition during the given day',
+        model: 'automatic best match; the response does not identify each contributing model run'}};
+  }
+  function requestUrl(protocol) {
+    if (protocol !== 'http:' && protocol !== 'https:') { throw new Error('unsupported_protocol'); }
+    return protocol + '//api.open-meteo.com/v1/forecast?latitude=23.4394&longitude=115.8305' +
+      '&current=temperature_2m%2Cweather_code%2Cprecipitation' +
+      '&daily=weather_code%2Ctemperature_2m_max%2Ctemperature_2m_min%2Cprecipitation_sum' +
+      '&timezone=Asia%2FShanghai&forecast_days=6&timeformat=unixtime' +
+      '&temperature_unit=celsius&precipitation_unit=mm';
+  }
+  function fetchWeather(config, callback) {
+    if (typeof config === 'function') { callback = config; config = {}; }
+    config = config || {};
+    if (typeof callback !== 'function') { throw new Error('callback_required'); }
+    if (active) { active.callbacks.push(callback); return; }
+    var protocol = config.protocol || (root.location && root.location.protocol === 'https:' ? 'https:' : 'http:');
+    var timeout = numeric(config.timeoutMs, 1000, 60000) || 20000;
+    var request = {callbacks: [callback], finished: false, timer: null, xhr: null};
+    active = request;
+    function finish(error, raw) {
+      if (request.finished) { return; }
+      request.finished = true;
+      if (request.timer !== null) { root.clearTimeout(request.timer); }
+      if (!error) {
+        try { lastSuccess = normalize(raw, Math.floor(new Date().getTime() / 1000)); }
+        catch (ignored) { error = 'invalid_weather_response'; }
+      }
+      active = null;
+      var result = clone(lastSuccess);
+      if (error && result) { result.stale = true; result.errorCode = error; }
+      var callbacks = request.callbacks.slice(0);
+      var n;
+      for (n = 0; n < callbacks.length; n += 1) {
+        try { callbacks[n](error || null, clone(result)); } catch (ignoredCallback) {}
+      }
+    }
+    request.cancel = function () {
+      finish('aborted');
+      if (request.xhr) { try { request.xhr.abort(); } catch (ignoredCancel) {} }
+    };
+    try {
+      var url = requestUrl(protocol);
+      var xhr = new root.XMLHttpRequest();
+      request.xhr = xhr;
+      xhr.open('GET', url, true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) { return; }
+        if (xhr.status !== 200) { finish(xhr.status ? 'http_' + xhr.status : 'network_error'); return; }
+        var raw;
+        try { raw = JSON.parse(xhr.responseText); } catch (ignoredJson) { finish('invalid_json'); return; }
+        finish(null, raw);
+      };
+      xhr.onerror = function () { finish('network_error'); };
+      xhr.ontimeout = function () { finish('timeout'); };
+      xhr.onabort = function () { finish('aborted'); };
+      try { xhr.timeout = timeout; } catch (ignoredTimeout) {}
+      request.timer = root.setTimeout(function () {
+        finish('timeout');
+        try { xhr.abort(); } catch (ignoredAbort) {}
+      }, timeout);
+      xhr.send(null);
+    } catch (ignoredRequest) { finish('request_unavailable'); }
+  }
+  root.OpenMeteoProvider = {fetch: fetchWeather, normalize: normalize,
+    cancel: function () { if (!active) { return false; } active.cancel(); return true; },
+    requestUrl: requestUrl, getCached: function () { return clone(lastSuccess); }};
+}(typeof window !== 'undefined' ? window : this));
+
+</script>
+  <script>
+/* ES5 large-type weather display; direct Open-Meteo current and daily data. */
 (function (root) {
   "use strict";
-  var CACHE_URL = "https://api.github.com/repos/hanjietan/hanjietan.github.io/contents/kindle-weather/cache/hepo.json?ref=codex%2Fkindle-weather";
-  var PERIOD = 21600000, STEP = 21600, OFFSET = 28800, HEIGHT = 716;
-  var STORAGE_KEY = "kindle-meteoblue-simple-v1:hepo";
-  var EXPECTED_UNITS = {temperature:"C",relativeHumidity:"%",totalCloudCover:"%",windSpeed:"m/s",windDirection:"degree",precipitation:"mm"};
-  var FIELDS = ["temperature","relativeHumidity","totalCloudCover","precipitation","windSpeed","windDirection"];
-  var DAY_FIELDS = ["temperatureMin","temperatureMax","precipitation"];
-  // The official 6-hourly/daily family has no codes 18 or 19. Hourly codes differ.
-  var WEATHER = {1:"晴",2:"晴间少云",3:"多云",4:"阴",5:"雾",6:"阴有雨",7:"阵雨",8:"阵雨，可能雷电",9:"阴有雪",10:"阵雪",11:"雨夹雪",12:"阴，间歇有雨",13:"阴，间歇有雪",14:"多云有雨",15:"多云有雪",16:"多云，间歇有雨",17:"多云，间歇有雪",20:"大部多云",21:"晴，可能雷雨",22:"可能雷雨",23:"可能雷阵雨",24:"雷雨及强阵雨",25:"多云伴雷阵雨"};
-  var canvas = document.getElementById("screen"), ctx = canvas.getContext("2d"), controls = document.getElementById("controls");
-  var status = document.getElementById("status"), cache = null, networkTimer = null, displayTimer = null;
-  var generation = 0, displayGeneration = 0, stopped = false, statusMessage = "", awakeMessage = "", awake = null;
+  var PERIOD=21600000,OFFSET=28800,HEIGHT=716,STORAGE_KEY="kindle-openmeteo-simple-v1:hepo";
+  var WEATHER={0:"晴",1:"大部晴",2:"多云",3:"阴",45:"雾",48:"雾凇",51:"小毛毛雨",53:"毛毛雨",55:"较强毛毛雨",56:"冻毛毛雨",57:"冻毛毛雨",61:"小雨",63:"中雨",65:"大雨",66:"轻冻雨",67:"强冻雨",71:"小雪",73:"中雪",75:"大雪",77:"雪粒",80:"小阵雨",81:"阵雨",82:"强阵雨",85:"小阵雪",86:"强阵雪",95:"雷雨",96:"雷雨伴冰雹",99:"雷雨伴冰雹"};
+  var canvas=document.getElementById("screen"),ctx=canvas.getContext("2d"),controls=document.getElementById("controls");
+  var status=document.getElementById("status"),cache=null,networkTimer=null,displayTimer=null;
+  var generation=0,displayGeneration=0,stopped=false,statusMessage="",awakeMessage="",awake=null;
+  if(root.KindleRemoteUpdateState)root.KindleRemoteUpdateState.source="open-meteo";
 
   function now() { return new Date().getTime(); }
   function finite(value) { return typeof value === "number" && isFinite(value); }
@@ -270,63 +423,32 @@
     return {key:target.getUTCFullYear()+"-"+pad(target.getUTCMonth()+1)+"-"+pad(target.getUTCDate()),month:target.getUTCMonth()+1,day:target.getUTCDate(),weekday:target.getUTCDay()};
   }
   function clock(value, date) {
-    if (!timestamp(value)) return "--";
+    if (!timestamp(value)) return "—";
     var d = civil(value);
     return (date ? pad(d.getUTCMonth()+1)+"/"+pad(d.getUTCDate())+" " : "")+pad(d.getUTCHours())+":"+pad(d.getUTCMinutes());
   }
-  function amount(value, digits) { return finite(value) ? value.toFixed(digits || 0).replace(/^-0$/,"0") : "--"; }
+  function amount(value, digits) { return finite(value) ? value.toFixed(digits || 0).replace(/^-0$/,"0") : "—"; }
   function rainAmount(value) {
-    if(!finite(value))return "--";
+    if(!finite(value))return "—";
     if(value>0 && value<0.01)return "<0.01";
     return value.toFixed(2).replace(/\.?0+$/,"");
   }
-  function modelTime(value) {
-    if (value === null) return true;
-    if (array(value)) { for (var i=0;i<value.length;i++) if (!timestamp(value[i])) return false; return true; }
-    return timestamp(value);
-  }
-  function latestTime(value) { return array(value) ? value.length ? Math.max.apply(Math,value) : null : value; }
-  function packageMetadata(group) {
-    if (!group || group.resolutionHours !== 6 || !(group.fetchedAt === null || timestamp(group.fetchedAt))) throw new Error("数据时间格式异常");
-    if (!modelTime(group.modelrunUtc) || !modelTime(group.modelrunUpdateTimeUtc)) throw new Error("发布时间格式异常");
-  }
   function validate(data) {
-    if (!data || data.schemaVersion !== 1 || data.source !== "meteoblue") throw new Error("天气来源或版本异常");
+    if(!data || data.schemaVersion!==1 || data.source!=="open-meteo" || data.weatherCodeSystem!=="wmo-4677")throw new Error("天气来源或版本异常");
     var location=data.location;
-    if (!location || location.id!=="hepo" || location.timezone!=="Asia/Shanghai" || !location.name || !finite(location.latitude) || !finite(location.longitude) || Math.abs(location.latitude)>90 || Math.abs(location.longitude)>180) throw new Error("地点数据异常");
-    for (var unit in EXPECTED_UNITS) if (EXPECTED_UNITS.hasOwnProperty(unit) && (!data.units || data.units[unit]!==EXPECTED_UNITS[unit])) throw new Error("天气单位异常");
-    if (!data.packages) throw new Error("天气发布时间缺失");
-    packageMetadata(data.packages.basic); packageMetadata(data.packages.clouds);
-    if (!array(data.sixHourly) || !array(data.daily)) throw new Error("预报时段缺失");
-    var previous=-1,i,f,row,value,key;
-    for (i=0;i<data.sixHourly.length;i++) {
-      row=data.sixHourly[i];
-      if (!row || !timestamp(row.time) || row.time<=previous || previous>=0 && (row.time-previous)%STEP!==0) throw new Error("预报时间顺序异常");
-      previous=row.time;
-      for (f=0;f<FIELDS.length;f++) {
-        key=FIELDS[f]; value=row[key];
-        if (!nullable(value)) throw new Error("天气数值缺失或异常");
-        if (value!==null && ((key==="relativeHumidity" || key==="totalCloudCover") && (value<0 || value>100) || key==="windDirection" && (value<0 || value>360) || (key==="windSpeed" || key==="precipitation") && value<0)) throw new Error("天气数值范围异常");
-      }
-    }
-    previous=-1;var previousDay="";
-    for (i=0;i<data.daily.length;i++) {
-      row=data.daily[i];
-      if (!row || !timestamp(row.time) || row.time<=previous || dayKey(row.time)===previousDay) throw new Error("日预报日期异常");
-      previous=row.time;previousDay=dayKey(row.time);
-      for (f=0;f<DAY_FIELDS.length;f++) if (!nullable(row[DAY_FIELDS[f]])) throw new Error("日预报数值异常");
-      if (row.precipitation!==null && row.precipitation<0 || finite(row.temperatureMin) && finite(row.temperatureMax) && row.temperatureMin>row.temperatureMax) throw new Error("日预报范围异常");
+    if(!location || location.id!=="hepo" || location.timezone!=="Asia/Shanghai" || !location.name || !finite(location.latitude) || !finite(location.longitude) || Math.abs(location.latitude-23.4394)>0.02 || Math.abs(location.longitude-115.8305)>0.02)throw new Error("地点数据异常");
+    if(!data.units || data.units.temperature!=="C" || data.units.precipitation!=="mm")throw new Error("天气单位异常");
+    if(!timestamp(data.fetchedAt) || !data.current || !timestamp(data.current.time) || !nullable(data.current.temperature) || !array(data.daily))throw new Error("天气数据异常");
+    var previous=-1,previousDay="";
+    for(var i=0;i<data.daily.length;i++){
+      var row=data.daily[i];
+      if(!row || !timestamp(row.time) || row.time<=previous || dayKey(row.time)===previousDay || row.date!==dayKey(row.time))throw new Error("日预报日期异常");
+      previous=row.time;previousDay=row.date;
+      if(!nullable(row.temperatureMin) || !nullable(row.temperatureMax) || !nullable(row.precipitation) || row.precipitation!==null && row.precipitation<0 || finite(row.temperatureMin) && finite(row.temperatureMax) && row.temperatureMin>row.temperatureMax)throw new Error("日预报数值异常");
     }
     return data;
   }
-  function currentAt(data, instant) {
-    var rows=data && data.sixHourly || [], closest=null, distance=STEP+1;
-    for (var i=0;i<rows.length;i++) {
-      var delta=Math.abs(rows[i].time-instant);
-      if(delta<=STEP && (delta<distance || delta===distance && (!closest || rows[i].time>closest.time))){closest=rows[i];distance=delta;}
-    }
-    return closest;
-  }
+  function currentAt(data) {return data?data.current:null;}
   function dayFor(data, instant, offset) {
     var target=targetDay(instant,offset).key, rows=data && data.daily || [];
     for (var i=0;i<rows.length;i++) if (dayKey(rows[i].time)===target) return rows[i];
@@ -334,7 +456,7 @@
   }
   function weatherText(data, row) {
     var code=row && row.weatherCode;
-    return data && data.weatherCodeSystem==="meteoblue-pictocode-1-25" && finite(code) && code%1===0 && WEATHER.hasOwnProperty(code) ? WEATHER[code] : "天气暂无";
+    return data && data.weatherCodeSystem==="wmo-4677" && finite(code) && code%1===0 && WEATHER.hasOwnProperty(code) ? WEATHER[code] : "—";
   }
   function text(x,y,message,size,bold,align) {
     ctx.fillStyle="#000";ctx.textAlign=align||"left";ctx.textBaseline="top";
@@ -345,25 +467,23 @@
     var date=targetDay(instant,offset),row=dayFor(cache,instant,offset);
     text(28,top,offset===1?"明天":"后天",36,true);
     text(28,top+49,date.month+"月"+date.day+"日",24);
-    text(572,top+10,amount(row && row.temperatureMin)+"—"+amount(row && row.temperatureMax)+"°",60,true,"right");
+    var range=row && (finite(row.temperatureMin)||finite(row.temperatureMax))?amount(row.temperatureMin)+"—"+amount(row.temperatureMax)+"°":"—";
+    text(572,top+10,range,60,true,"right");
     var condition=weatherText(cache,row);
     text(28,top+103,condition,32,true);
     text(572,top+107,"降水"+rainAmount(row && row.precipitation)+"毫米",29,false,"right");
   }
   function render() {
-    var instant=now()/1000,today=targetDay(instant,0),current=currentAt(cache,instant),basic=cache && cache.packages.basic;
+    var instant=now()/1000,today=targetDay(instant,0),current=currentAt(cache);
     ctx.fillStyle="#fff";ctx.fillRect(0,0,600,HEIGHT);
     text(28,18,cache?cache.location.name:"揭西河婆",32,true);
     text(572,25,today.month+"月"+today.day+"日 周"+"日一二三四五六".charAt(today.weekday),23,false,"right");
     var valid=current?dayKey(current.time)===today.key?"今天 "+clock(current.time):clock(current.time,true):"";
-    text(300,83,"气温预报"+(valid?" · "+valid:""),26,false,"center");
+    text(300,83,"当前气温"+(valid?" · "+valid:""),26,false,"center");
     text(300,120,amount(current && current.temperature)+"°C",126,true,"center");
-    if (!current) text(300,252,cache?"暂无有效气温预报":"等待天气数据",23,false,"center");
+    if (!current) text(300,252,cache?"暂无当前气温":"等待天气数据",23,false,"center");
     rule(282);dayCard(instant,1,303);rule(458);dayCard(instant,2,479);rule(634);
-    var published=basic?latestTime(basic.modelrunUpdateTimeUtc):null;
-    var label=timestamp(published)?"预报更新 ":"数据取得 ";
-    text(300,655,label+clock(timestamp(published)?published:basic?basic.fetchedAt:null,true),21,false,"center");
-    if (basic && basic.latestAttempt && /^(failed|expired|paused)$/.test(basic.latestAttempt.status)) text(300,681,"预报未更新",18,true,"center");
+    text(300,655,"数据取得 "+clock(cache?cache.fetchedAt:null,true),21,false,"center");
     fit();scheduleDisplay();
   }
   function fit() {
@@ -372,42 +492,23 @@
     canvas.style.width=Math.floor(600*scale)+"px";canvas.style.height=Math.floor(HEIGHT*scale)+"px";
   }
   function setStatus(message) {statusMessage=message;status.textContent=message+(awakeMessage?(message?" · ":"")+awakeMessage:"");status.style.display=status.textContent?"block":"none";fit();}
-  function cancelDisplay() {displayGeneration++;if(displayTimer!==null)root.clearTimeout(displayTimer);displayTimer=null;}
-  function nextMidnight(instant) {
-    var d=civil(instant);
-    return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()+1)-OFFSET*1000;
-  }
-  function scheduleDisplay() {
-    cancelDisplay();if(stopped)return;
-    var instant=now()/1000,current=currentAt(cache,instant),due=nextMidnight(instant)+50;
-    var rows=cache && cache.sixHourly || [],i;
-    if(current){
-      due=Math.min(due,(current.time+STEP)*1000+50);
-      for(i=0;i<rows.length;i++)if(rows[i].time>current.time){due=Math.min(due,(current.time+rows[i].time)*500+50);break;}
-    }else{
-      for(i=0;i<rows.length;i++)if(rows[i].time-STEP>instant){due=Math.min(due,(rows[i].time-STEP)*1000+50);break;}
-    }
-    var marker=displayGeneration;
-    displayTimer=root.setTimeout(function(){if(stopped||marker!==displayGeneration)return;displayTimer=null;render();},Math.max(50,due-now()));
-  }
-  function nextReadAt(milliseconds) {
-    // Beijing 00:35 / 06:35 / 12:35 / 18:35. Screen redraws never query the provider.
-    var shift=OFFSET*1000-35*60000;
-    return (Math.floor((milliseconds+shift)/PERIOD)+1)*PERIOD-shift;
-  }
-  function scheduleNetwork() {if(networkTimer!==null)root.clearTimeout(networkTimer);if(!stopped)networkTimer=root.setTimeout(refresh,Math.max(1,nextReadAt(now())-now()));}
-  function refresh() {
+  function cancelDisplay(){displayGeneration++;if(displayTimer!==null)root.clearTimeout(displayTimer);displayTimer=null;}
+  function nextMidnight(instant){var d=civil(instant);return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()+1)-OFFSET*1000;}
+  function scheduleDisplay(){cancelDisplay();if(stopped)return;var marker=displayGeneration;displayTimer=root.setTimeout(function(){if(stopped||marker!==displayGeneration)return;displayTimer=null;render();},Math.max(50,nextMidnight(now()/1000)+50-now()));}
+  function nextReadAt(milliseconds){var shift=OFFSET*1000-35*60000;return(Math.floor((milliseconds+shift)/PERIOD)+1)*PERIOD-shift;}
+  function scheduleNetwork(){if(networkTimer!==null)root.clearTimeout(networkTimer);if(!stopped)networkTimer=root.setTimeout(refresh,Math.max(1,nextReadAt(now())-now()));}
+  function refresh(){
     if(stopped)return;if(networkTimer!==null)root.clearTimeout(networkTimer);networkTimer=null;
-    var token=++generation,xhr=new XMLHttpRequest(),finished=false;setStatus("正在读取…");
-    function complete(error) {
+    var token=++generation,finished=false;setStatus("正在读取…");
+    function complete(error,data){
       if(finished||token!==generation||stopped)return;finished=true;
-      if(!error){try{cache=validate(JSON.parse(xhr.responseText));try{root.localStorage.setItem(STORAGE_KEY,JSON.stringify(cache));}catch(ignore){}}catch(bad){error=bad.message||"天气格式异常";}}
-      render();setStatus(error?"读取失败："+error:cache&&cache.paused?"天气更新已暂停":"");scheduleNetwork();
+      if(!error){try{cache=validate(data);try{root.localStorage.setItem(STORAGE_KEY,JSON.stringify(cache));}catch(ignore){}}catch(bad){error=bad.message||"天气格式异常";}}
+      render();setStatus(error?"读取失败："+(error.message||String(error)):"");scheduleNetwork();
     }
-    xhr.onload=function(){complete(xhr.status===200?null:"HTTP "+xhr.status);};xhr.onerror=function(){complete("网络错误");};xhr.ontimeout=function(){complete("访问超时");};
-    try{xhr.open("GET",CACHE_URL,true);xhr.timeout=20000;xhr.setRequestHeader("Accept","application/vnd.github.raw+json");xhr.send(null);}catch(error){complete("无法读取天气");}
+    if(!root.OpenMeteoProvider || typeof root.OpenMeteoProvider.fetch!=="function"){complete("天气读取器不可用");return;}
+    try{root.OpenMeteoProvider.fetch({},complete);}catch(error){complete("无法读取天气");}
   }
-  function stop(){stopped=true;generation++;cancelDisplay();if(networkTimer!==null)root.clearTimeout(networkTimer);networkTimer=null;if(awake)awake.disable();}
+  function stop(){stopped=true;generation++;if(root.OpenMeteoProvider && typeof root.OpenMeteoProvider.cancel==="function")root.OpenMeteoProvider.cancel();cancelDisplay();if(networkTimer!==null)root.clearTimeout(networkTimer);networkTimer=null;if(awake)awake.disable();}
   document.getElementById("refresh").onclick=refresh;
   if(typeof root.KindleKeepAwake==="function"){
     awake=new root.KindleKeepAwake({videoOnly:true,onChange:function(state){awakeMessage=state.code==="failed"?"保持显示失败":state.code==="paused"?"保持显示已停止":state.code==="unsupported"?"保持显示不可用":"";document.getElementById("awake").textContent=state.requested?"停止保持":"保持显示";setStatus(statusMessage);}});
@@ -415,7 +516,7 @@
   }
   root.addEventListener("pagehide",stop,false);root.addEventListener("beforeunload",stop,false);root.onresize=fit;
   try{var saved=root.localStorage.getItem(STORAGE_KEY);if(saved)cache=validate(JSON.parse(saved));}catch(ignore){}
-  root.MeteoblueSimple={cacheURL:CACHE_URL,validate:validate,clock:clock,dayKey:dayKey,targetDay:targetDay,dayFor:dayFor,currentAt:currentAt,weatherText:weatherText,nextReadAt:nextReadAt,nextMidnight:nextMidnight,getState:function(){var instant=now()/1000,current=currentAt(cache,instant),tomorrow=dayFor(cache,instant,1),after=dayFor(cache,instant,2);return{hasData:!!cache,currentTime:current?current.time:null,tomorrowTime:tomorrow?tomorrow.time:null,afterTomorrowTime:after?after.time:null,today:targetDay(instant,0).key,basicFetchedAt:cache?cache.packages.basic.fetchedAt:null,networkTimerActive:networkTimer!==null,displayTimerActive:displayTimer!==null};}};
+  root.OpenMeteoSimple={validate:validate,clock:clock,dayKey:dayKey,targetDay:targetDay,dayFor:dayFor,currentAt:currentAt,weatherText:weatherText,nextReadAt:nextReadAt,nextMidnight:nextMidnight,getState:function(){var instant=now()/1000,current=currentAt(cache),tomorrow=dayFor(cache,instant,1),after=dayFor(cache,instant,2);return{source:cache?cache.source:null,hasData:!!cache,currentTime:current?current.time:null,currentTemperature:current?current.temperature:null,tomorrowTime:tomorrow?tomorrow.time:null,afterTomorrowTime:after?after.time:null,today:targetDay(instant,0).key,fetchedAt:cache?cache.fetchedAt:null,networkTimerActive:networkTimer!==null,displayTimerActive:displayTimer!==null};}};
   render();refresh();
 }(this));
 

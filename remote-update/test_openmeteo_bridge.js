@@ -1,0 +1,38 @@
+/* OFFLINE: the actual installed launcher, real saved forecast, mocked transport. */
+const fs=require("node:fs"),path=require("node:path"),os=require("node:os"),crypto=require("node:crypto"),assert=require("node:assert/strict"),{spawn,execFileSync}=require("node:child_process");
+const index=process.argv.indexOf("--manifest");if(index<0)throw Error("--manifest PATH is required");
+const root=path.resolve(__dirname,".."),manifest=JSON.parse(fs.readFileSync(process.argv[index+1],"utf8")),sha=s=>crypto.createHash("sha256").update(s).digest("hex");
+const frozen=JSON.parse(execFileSync("python",["-X","utf8","-c","import sys,zipfile,json;z=zipfile.ZipFile(sys.argv[1]);print(json.dumps({'launcher':z.read('local/remote-update/build-meteoblue-20261108_035354/launcher.html').decode('utf-8'),'oldCache':json.loads(z.read('remote/kindle-weather/cache/hepo.json'))},ensure_ascii=True))",path.join(root,"runtime/frozen/weather-full-20261108-032139z/weather-full.zip")],{encoding:"utf8"}));
+const input={...frozen,bridge:fs.readFileSync(manifest.envelope_path,"utf8"),raw:JSON.parse(fs.readFileSync(path.join(root,"runtime/openmeteo-simple-live/api-response.json"),"utf8")),endpoint:"https://api.github.com/repos/hanjietan/hanjietan.github.io/contents/kindle-weather/weather.html?ref=codex%2Fkindle-weather"};
+assert.equal(sha(input.bridge),manifest.envelope_sha256);assert.equal(sha(input.launcher),"5cb58f7f271ceb0a1f84702597f785af04db49ce2a51f8cd20ee6dd362725a18");
+const wait=ms=>new Promise(r=>setTimeout(r,ms)),profile=path.join(os.tmpdir(),"kindle-bridge-test-"+Date.now()),browser=spawn("C:/Program Files/Google/Chrome/Application/chrome.exe",["--headless=new","--disable-gpu","--no-first-run","--disable-default-apps","--remote-debugging-port=0","--user-data-dir="+profile,"about:blank"],{windowsHide:true,stdio:"ignore"});
+let socket,session,id=0;const pending=new Map(),http=[],errors=[],results=[];
+function send(method,params={},target=session){return new Promise((resolve,reject)=>{const n=++id,m={id:n,method,params};if(target)m.sessionId=target;pending.set(n,{resolve,reject});socket.send(JSON.stringify(m));});}
+async function ev(expression){const r=await send("Runtime.evaluate",{expression,returnByValue:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;}
+async function until(expression){for(let n=0;n<120;n++){const value=await ev(expression);if(value)return value;await wait(50);}throw Error("Timeout: "+expression);}
+async function run(programFailure){
+ const t=await send("Target.createTarget",{url:"about:blank"},null);session=(await send("Target.attachToTarget",{targetId:t.targetId,flatten:true},null)).sessionId;await send("Runtime.enable");await send("Network.enable");await send("Emulation.setDeviceMetricsOverride",{width:600,height:800,deviceScaleFactor:1,mobile:false});
+ const setup="window.input="+JSON.stringify(input)+";window.calls=[];window.programFail="+programFailure+";window.providerFail=false;window.XMLHttpRequest=function(){this.open=function(method,url){this.url=url;};this.setRequestHeader=function(){};this.abort=function(){if(this.onabort)this.onabort();};this.send=function(){var x=this;calls.push(x.url);setTimeout(function(){if(x.url===input.endpoint){if(programFail){x.onerror();return;}x.status=200;x.responseURL=x.url;x.responseText=input.bridge;}else if(x.url.indexOf('http://api.open-meteo.com/v1/forecast?')===0){x.status=providerFail?503:200;x.responseText=JSON.stringify(input.raw);}else if(x.url.indexOf('/contents/kindle-weather/cache/hepo.json?')!==-1){x.status=200;x.responseText=JSON.stringify(input.oldCache);}else throw new Error('Unexpected URL '+x.url);x.readyState=4;if(x.onreadystatechange)x.onreadystatechange();if(x.onload)x.onload();},0);};};document.open();document.write("+JSON.stringify(input.launcher)+");document.close();void 0;";
+ await ev(setup);
+ if(!programFailure){
+  await until("window.OpenMeteoSimple&&OpenMeteoSimple.getState().hasData");
+  const state=await ev("({update:KindleRemoteUpdateState,package:KindleWeatherPackage,client:OpenMeteoSimple.getState(),data:OpenMeteoProvider.getCached(),canvasCount:document.querySelectorAll('canvas#screen').length,canvasWidth:document.getElementById('screen').width,placeholder:!!document.getElementById('transport-loading'),oldClient:typeof MeteoblueClient})");
+  assert.equal(state.update.source,"open-meteo");assert.equal(state.package.actualSource,"open-meteo");assert.equal(state.client.source,"open-meteo");assert.equal(state.data.source,"open-meteo");assert.equal(state.data.current.temperature,input.raw.current.temperature_2m);
+  assert.equal(state.canvasCount,1,"Nested replacement must leave one actual canvas, not the compatibility canvas");assert.equal(state.canvasWidth,600);assert.equal(state.placeholder,false);assert.equal(state.oldClient,"undefined");
+  await ev("providerFail=true;document.getElementById('refresh').click();void 0;");await until("calls.length===3&&document.getElementById('status').textContent.indexOf('读取失败')>=0");
+  const after=await ev("OpenMeteoSimple.getState()");assert.equal(after.fetchedAt,state.client.fetchedAt);assert.equal(after.currentTemperature,state.client.currentTemperature);assert.equal(after.source,"open-meteo");assert.equal((await ev("calls")).filter(x=>x.includes("cache/hepo")).length,0);
+  await ev("dispatchEvent(new Event('pagehide'));void 0;");const stopped=await ev("OpenMeteoSimple.getState()");assert.equal(stopped.networkTimerActive,false);assert.equal(stopped.displayTimerActive,false);
+  results.push({path:"installed launcher -> envelope -> actual forecast snapshot",source:after.source,temperature:after.currentTemperature,oneVisibleWeatherCanvas:true,inner503RetainsValidDataAndTime:true,previousWeatherSourceExecuted:false,cleanup:true});
+ }else{
+  await until("window.MeteoblueClient&&MeteoblueClient.getState().hasData");assert.equal(await ev("KindleRemoteUpdateState.mode"),"embedded");assert.equal(await ev("typeof OpenMeteoSimple"),"undefined");
+  results.push({path:"program request fails before envelope",physicalBookFallback:"unchanged frozen full chart",limitationExplicitlyDocumented:true});
+ }
+ await send("Target.closeTarget",{targetId:t.targetId},null);
+}
+(async()=>{try{
+ const f=path.join(profile,"DevToolsActivePort");for(let n=0;n<70&&!fs.existsSync(f);n++)await wait(100);const a=fs.readFileSync(f,"utf8").trim().split(/\r?\n/);socket=new WebSocket("ws://127.0.0.1:"+a[0]+a[1]);await new Promise((r,j)=>{socket.addEventListener("open",r,{once:true});socket.addEventListener("error",j,{once:true});});
+ socket.addEventListener("message",event=>{const m=JSON.parse(event.data);if(m.id&&pending.has(m.id)){const q=pending.get(m.id);pending.delete(m.id);m.error?q.reject(Error(JSON.stringify(m.error))):q.resolve(m.result);}else if(m.method==="Network.requestWillBeSent"&&/^https?:/.test(m.params.request.url))http.push(m.params.request.url);else if(m.method==="Runtime.exceptionThrown")errors.push(m.params.exceptionDetails.text);});
+ await run(false);await run(true);assert.deepEqual(http,[]);assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,bridgeSHA256:manifest.envelope_sha256,clientSHA256:manifest.client_sha256,actualInstalledLauncherExecuted:true,results,realHTTPRequests:http,errors,additionalProviderCalls:0,deviceOperations:0},null,2));
+ }catch(error){console.error(JSON.stringify({passed:false,error:String(error.stack||error),results,http,errors},null,2));process.exitCode=1;}
+ finally{if(socket&&socket.readyState===1){try{await send("Browser.close",{},null);}catch(ignore){}socket.close();}if(!browser.killed)browser.kill();}
+})();

@@ -1,0 +1,18 @@
+{
+  "bytes": 44272,
+  "base64_bytes": 59032,
+  "sha256": "9f13735a3fc6a08c67900948458374dfaa91213dbd0b9fcfbed4a4de450969c6",
+  "source_sha256": {
+    "index.html": "5da0a5f2bf1b1c7267b5039742606e94488e7cce1c9d3a4a44622112d20db72c",
+    "keep-awake.js": "a9f6b38de217c0ff86a0ac47c072d15871d80ddf7a5e38e6eb2121795c9d0fda",
+    "provider.js": "370a76ea82917070b3bc5dbb9689740335b4b894b05b5f4c93a39e2d758da1a1",
+    "client.js": "8b5f3936d671a3d38abad64445ebdb88edc5c3b132fe03a305e42460fbc6c02c"
+  },
+  "source": "open-meteo",
+  "runtime_transport": "direct public Open-Meteo Forecast API",
+  "direct_provider_calls": true,
+  "credentials_embedded": false,
+  "fallback_provider": null,
+  "external_script_dependencies": [],
+  "synthetic_data_embedded": false
+}
