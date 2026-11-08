@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "source": "qweather",
+  "location": {
+    "id": "hepo",
+    "name": "揭西河婆",
+    "latitude": 23.44,
+    "longitude": 115.84,
+    "datum": "GCJ02",
+    "timezone": "Asia/Shanghai"
+  },
+  "fetchedAt": 1794137828,
+  "updatedAt": 1794137100,
+  "validUntil": 1794138000,
+  "knownHorizonEnd": 1794144300,
+  "alert": null
+}

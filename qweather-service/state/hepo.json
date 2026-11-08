@@ -14,13 +14,32 @@
       "slot": 5980459,
       "month": "2026-11",
       "reservedAt": 1794137826,
-      "attemptedAt": null,
-      "status": "reserved"
+      "attemptedAt": 1794137828,
+      "status": "success",
+      "completedAt": 1794137828,
+      "httpStatus": 200,
+      "apiCode": "200"
     }
   },
   "monthlyCounts": {
     "2026-11": 1
   },
   "paused": null,
-  "lastSuccess": null
+  "lastSuccess": {
+    "schemaVersion": 2,
+    "source": "qweather",
+    "location": {
+      "id": "hepo",
+      "name": "揭西河婆",
+      "latitude": 23.44,
+      "longitude": 115.84,
+      "datum": "GCJ02",
+      "timezone": "Asia/Shanghai"
+    },
+    "fetchedAt": 1794137828,
+    "updatedAt": 1794137100,
+    "validUntil": 1794138000,
+    "knownHorizonEnd": 1794144300,
+    "alert": null
+  }
 }
