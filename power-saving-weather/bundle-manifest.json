@@ -1,0 +1,38 @@
+{
+  "variant": "power-saving-weather-candidate",
+  "source": "open-meteo",
+  "additional_sources": [],
+  "bytes": 30949,
+  "sha256": "1b21c4d8579f2887e70566fc3da72b535ef06e8e03189ab26ac94cf336572548",
+  "source_sha256": {
+    "index.html": "19193a73fb41328aa4e06ce5e1f0f8d05d31fad999bed15b9a43c944f0e2338e",
+    "keep-awake-media.js": "40a00ee1c8ed769dabb5074ce968a6ba26da927a6938230b2e7fac50daba20cf",
+    "keep-awake.js": "a559e8ac87b13369c3f36165e381cafd8bdd53f857abbef035f0ce86f1bcdd4d",
+    "provider.js": "370a76ea82917070b3bc5dbb9689740335b4b894b05b5f4c93a39e2d758da1a1",
+    "client.js": "c007b6f48a7b29e116d76ca3ec1bcdb83d3a10994aaa04d293dd84ded11911a5"
+  },
+  "minute_rain_requests": false,
+  "automatic_weather_interval_hours": 6,
+  "keep_awake": {
+    "method": "legacy-low-rate-video",
+    "video_sha256": "475cebba315f07f626a485887f3729ce55259ad5e4062b32d9bc7532f93de75d",
+    "encoded_dimensions": [
+      16,
+      16
+    ],
+    "fps": 1,
+    "duration_seconds": 60,
+    "audio": false,
+    "watchdog_ms": 61000,
+    "per_frame_javascript": false,
+    "manual_seeks": false
+  },
+  "credentials_embedded": false,
+  "synthetic_data_embedded": false,
+  "external_script_dependencies": [],
+  "requires_kindletest_12minutes": true,
+  "requires_battery_test_hours": "1\u20132",
+  "deep_sleep_verified": false,
+  "month_battery_life_verified": false,
+  "published": false
+}

@@ -1,23 +1,34 @@
 {
   "actual_source": "open-meteo",
   "actual_sources": [
-    "open-meteo",
-    "qweather"
+    "open-meteo"
   ],
-  "ui_revision": "rain-status-v3",
-  "client_sha256": "8e6300b628211d0d8ad0ee261349d9049ec28c657a8a047965555bd39cc310d6",
-  "client_bytes": 56403,
-  "envelope_sha256": "b1d164fb421f42d5bc8565b8163f119703c79681f2fd2254ed1d475a5aab7025",
-  "envelope_bytes": 76942,
-  "qweather_cache_schema": 3,
-  "qweather_compatible_schemas": [
-    3,
-    2
-  ],
-  "qweather_public_data": "compressed qualitative display periods only",
-  "received_cache_max_age_seconds": 600,
-  "source_max_age_seconds": 1800,
-  "monthly_request_cap": 10000,
+  "ui_revision": "constant-weather-low-rate-v1",
+  "client_sha256": "1b21c4d8579f2887e70566fc3da72b535ef06e8e03189ab26ac94cf336572548",
+  "client_bytes": 30949,
+  "envelope_sha256": "187d73c3cdb442f0ea631bc92789535826a032d60031d04dafc048583b163b4f",
+  "envelope_bytes": 42990,
+  "automatic_weather_interval_hours": 6,
+  "minute_rain": false,
+  "keep_awake": {
+    "method": "legacy-low-rate-video",
+    "dimensions": [
+      16,
+      16
+    ],
+    "fps": 1,
+    "duration_seconds": 60,
+    "watchdog_ms": 61000,
+    "manual_seeks": false,
+    "per_frame_javascript": false
+  },
+  "power_savings_measured": false,
+  "month_battery_life_verified": false,
+  "deep_sleep_verified": false,
   "credentials_embedded": false,
-  "snapshot_embedded": false
+  "snapshot_embedded": false,
+  "rain_version_archive": {
+    "branch": "codex/frozen-rain-weather-20261108-1319z",
+    "commit": "aa964fc0e702f0f0818b06b7391ac38bb803f6da"
+  }
 }
