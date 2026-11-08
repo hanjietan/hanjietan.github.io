@@ -1,5 +1,10 @@
 # QWeather minute-precipitation cache service
 
+**Archived after the user selected a no-rain constant-display test. The active
+weather screen uses only Open-Meteo. Native Cron and Cloudflare dispatch are
+inactive. Below is restoration documentation; it does not mean requests are
+currently running. Preserve the existing ledger when restoring.**
+
 Node.js 22, native modules plus the checked-in pure `openmeteo-simple/rain_hint.js`
 helper: no npm packages or installation. This is the
 GitHub Actions cache route for the existing Kindle program. It does not depend
