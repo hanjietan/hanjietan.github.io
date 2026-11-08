@@ -131,9 +131,10 @@ one minute left. Failed requests preserve all old times and expiry unchanged.
 Regression checks compare the prior derived `updatedAt`. A legacy raw-shaped
 state fails closed instead of being republished.
 
-## Deployment draft and timing limitation
+## Deployment and timing limitation
 
-These files do not deploy themselves or create a credential. After approval:
+The approved service is deployed with a minute-only JWT credential stored in the
+repository Actions secret. To reproduce or maintain the deployment:
 
 - Put `qweather-service/` and the controlled `openmeteo-simple/rain_hint.js` on
   `codex/kindle-weather`; both are required by the clone-reproducible tests.
@@ -145,7 +146,7 @@ These files do not deploy themselves or create a credential. After approval:
 - The first normal run must verify an actual usable response before activating
   the reader. No extra probe or automatic manual rerun is needed.
 
-Cron `2-57/5 * * * *` avoids minute zero. GitHub schedules may be delayed or
+Cron `2,7,12,17,22,27,32,37,42,47,52,57 * * * *` avoids minute zero. GitHub schedules may be delayed or
 dropped; it is not a guaranteed five-minute service. The public cache also has
 GitHub/client caching delays. Expired short-range hints must be hidden/unavailable,
 never displayed as current rain/no-rain claims. The main Open-Meteo display can
