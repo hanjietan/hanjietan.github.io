@@ -1,9 +1,13 @@
-# Kindle 多地区天气屏
+# Kindle 天气屏
 
-程序文件为 `weather.html`，支持广州越秀、增城新塘、揭西河婆、茂名茂南、开封龙亭，全部使用北京时间。
+单地点揭西河婆（23.4394,115.8305，北京时间）的 Meteoblue 天气屏，显示未来72小时温度、湿度、总云量、6小时累计降水、平均风速和风向。
 
-Kindle 的固定启动书通过 GitHub Contents API 读取本分支的这个文件。程序更新时只需替换同一路径，Kindle 重新打开启动入口即可取得新版；首次启动器安装后不用再通过 USB 传书。重新进入页面后点“保持显示”。天气、降雨实况和未来降雨每 6 小时自动取数，手动更新和地区/视图切换可立即取数，失败一分钟后重试。未来降雨一次缓存九个小时，三个按钮跨整点在本地前移，不增加联网请求。天气数据更新不会反复请求 GitHub。
+`weather.html` 是固定启动程序；`cache/hepo.json` 是云端天气缓存。Kindle自行联网，不需要电脑常开。程序重新打开入口时更新；缓存自动读取对齐北京时间00:35、06:35、12:35、18:35，首次及手动更新立即读取缓存。
 
-程序文件应保留 `<!-- kindle-weather-package:v1 -->` 格式标记和完整自包含 HTML。读取失败时启动器使用书内版本。不向 Kindle 写入 GitHub 令牌，不上传用户书籍。
+main分支的 `.github/workflows/kindle-meteoblue.yml` 计划北京时间00:17、06:17、12:17、18:17运行，checkout本分支执行 `meteoblue-service/`：Basic每日最多四次，Clouds每日最多一次。两包保留各自的实际取得/模型时间；Actions可能延迟，页面不伪造新时间。
 
-数据来源：Open-Meteo（CC BY 4.0）、RainViewer；静音保活组件的 MIT 许可包含在 HTML 中。
+API key只在 Actions Secret `METEOBLUE_API_KEY`，不会进入客户端、天气JSON或启动书。重复运行受持久时段账本限制；错误保留旧成功包，缺测显示未知，实际单包计费异常时暂停。按标准计费正常全年预算730万credits，免费试用额度有效一年。
+
+`meteoblue-client/` 为自包含ES5客户端；`meteoblue-service/` 为标准库Python服务与测试。当前客户端与新《天气屏》启动器都只使用Meteoblue缓存，无其他天气源回退。NoSleep MIT许可内嵌程序，Meteoblue来源链接保留。
+
+首轮云端取数及真实缓存渲染成功；原厂Kindle已拔掉USB验证新书正常。后续普通程序更新替换同一路径即可，日常天气数据自动更新。
