@@ -1,89 +1,18 @@
-# Deploy THIS workflow to the repository DEFAULT branch (main).
-# Fetcher source and durable state/cache are on codex/kindle-weather.
-name: Kindle Meteoblue forecast
+# Archived 2026-11-08: the Kindle now uses Open-Meteo directly.
+# The original Meteoblue workflow is frozen at main commit
+# 6881767fa7633e0d758b822951e1cc06796c1e8e and in the local full-version backup.
+# No schedule, secrets or provider requests remain in this workflow.
+name: Kindle Meteoblue (archived)
 
 on:
-  schedule:
-    # Beijing 00:17, 06:17, 12:17, 18:17; avoids the busy full hour.
-    - cron: '17 4,10,16,22 * * *'
   workflow_dispatch:
 
 permissions:
-  contents: write
-
-concurrency:
-  group: kindle-meteoblue-hepo
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  update:
+  archived:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    env:
-      RUN_TOKEN: '${{ github.run_id }}-${{ github.run_attempt }}'
     steps:
-      - name: Check out weather source and persisted ledger
-        uses: actions/checkout@v4
-        with:
-          ref: codex/kindle-weather
-          fetch-depth: 1
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Run offline checks
-        run: python -m unittest discover -s meteoblue-service/tests -v
-
-      - name: Require configured secret before reserving quota
-        env:
-          METEOBLUE_API_KEY: '${{ secrets.METEOBLUE_API_KEY }}'
-        run: |
-          if [ -z "${METEOBLUE_API_KEY:-}" ]; then
-            echo '::error::Configure repository secret METEOBLUE_API_KEY before running.'
-            exit 1
-          fi
-
-      - name: Reserve and durably publish this time slot before any API request
-        id: reserve
-        env:
-          METEOBLUE_API_KEY: '${{ secrets.METEOBLUE_API_KEY }}'
-        run: |
-          python meteoblue-service/service.py reserve --run-id "$RUN_TOKEN"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- meteoblue-service/state/hepo.json
-          if ! git diff --cached --quiet; then
-            git commit -m 'Reserve Meteoblue forecast quota slot'
-            git push origin HEAD:codex/kindle-weather
-          fi
-
-      - name: Fetch each reserved package once
-        id: fetch
-        continue-on-error: true
-        env:
-          METEOBLUE_API_KEY: '${{ secrets.METEOBLUE_API_KEY }}'
-        run: python meteoblue-service/service.py fetch --run-id "$RUN_TOKEN" --cache-dir kindle-weather/cache
-
-      - name: Preserve results and old successful cache, including failed attempts
-        if: always() && steps.reserve.outcome == 'success'
-        run: |
-          git add -- meteoblue-service/state/hepo.json
-          if [ -f kindle-weather/cache/hepo.json ]; then
-            git add -- kindle-weather/cache/hepo.json
-          fi
-          if ! git diff --cached --quiet; then
-            git commit -m 'Update Meteoblue forecast cache and accounting'
-            # Retrying a Git push never repeats a weather API request.
-            if ! git push origin HEAD:codex/kindle-weather; then
-              git pull --rebase origin codex/kindle-weather
-              git push origin HEAD:codex/kindle-weather
-            fi
-          fi
-
-      - name: Report provider failure after ledger is saved
-        if: always() && steps.fetch.outcome == 'failure'
-        run: |
-          echo '::error::At least one reserved forecast request failed; retained previous successful package data.'
-          exit 1
+      - name: Meteoblue fetching is disabled
+        run: echo 'Meteoblue automatic fetching is disabled. Kindle uses Open-Meteo.'
