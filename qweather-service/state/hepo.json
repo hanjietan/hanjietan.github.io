@@ -25,8 +25,11 @@
       "slot": 5980461,
       "month": "2026-11",
       "reservedAt": 1794138438,
-      "attemptedAt": null,
-      "status": "reserved"
+      "attemptedAt": 1794138440,
+      "status": "success",
+      "completedAt": 1794138440,
+      "httpStatus": 200,
+      "apiCode": "200"
     }
   },
   "monthlyCounts": {
@@ -44,10 +47,10 @@
       "datum": "GCJ02",
       "timezone": "Asia/Shanghai"
     },
-    "fetchedAt": 1794137828,
-    "updatedAt": 1794137100,
-    "validUntil": 1794138000,
-    "knownHorizonEnd": 1794144300,
+    "fetchedAt": 1794138440,
+    "updatedAt": 1794137700,
+    "validUntil": 1794138600,
+    "knownHorizonEnd": 1794144900,
     "alert": null
   }
 }
